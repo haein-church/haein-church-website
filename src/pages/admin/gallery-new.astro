@@ -1,0 +1,133 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="갤러리 사진 올리기 - 해인교회">
+  <main class="form-wrap">
+    <div class="form-box">
+      <div class="form-header">
+        <a href="/admin" class="back">← 관리자 페이지</a>
+        <h1>갤러리 사진 올리기</h1>
+      </div>
+      <div id="msg" class="msg hidden"></div>
+      <form id="galleryForm">
+        <label>사진 제목
+          <input type="text" id="title" placeholder="사진 제목을 입력하세요" required />
+        </label>
+        <label>설명 (선택)
+          <input type="text" id="caption" placeholder="사진에 대한 간단한 설명" />
+        </label>
+        <label>사진 선택 <span class="required">*</span>
+          <input type="file" id="image" accept="image/*" required />
+          <div id="preview" class="preview hidden"></div>
+        </label>
+        <div class="btn-row">
+          <a href="/admin" class="btn-cancel">취소</a>
+          <button type="submit" id="submitBtn">사진 올리기</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  const msg = document.getElementById('msg') as HTMLDivElement;
+  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+  const imageInput = document.getElementById('image') as HTMLInputElement;
+  const preview = document.getElementById('preview') as HTMLDivElement;
+
+  supabase.auth.getSession().then(({ data }) => {
+    if (!data.session) window.location.href = '/login';
+  });
+
+  imageInput.addEventListener('change', () => {
+    const file = imageInput.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.innerHTML = `<img src="${e.target?.result}" alt="미리보기" />`;
+        preview.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  document.getElementById('galleryForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const file = imageInput.files?.[0];
+    if (!file) { alert('사진을 선택해주세요.'); return; }
+
+    submitBtn.textContent = '올리는 중...';
+    submitBtn.disabled = true;
+
+    const title = (document.getElementById('title') as HTMLInputElement).value;
+    const caption = (document.getElementById('caption') as HTMLInputElement).value;
+    const { data: { session } } = await supabase.auth.getSession();
+
+    const fileName = `${Date.now()}_${file.name}`;
+    const { error: uploadError } = await supabase.storage
+      .from('gallery-image')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      msg.textContent = '사진 업로드 실패: ' + uploadError.message;
+      msg.className = 'msg error';
+      submitBtn.textContent = '사진 올리기';
+      submitBtn.disabled = false;
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from('gallery-image').getPublicUrl(fileName);
+    const { error } = await supabase.from('gallery').insert({
+      title,
+      caption,
+      image_url: urlData.publicUrl,
+      author_id: session?.user.id,
+    });
+
+    if (error) {
+      msg.textContent = '오류: ' + error.message;
+      msg.className = 'msg error';
+      submitBtn.textContent = '사진 올리기';
+      submitBtn.disabled = false;
+    } else {
+      msg.textContent = '사진이 갤러리에 등록되었습니다!';
+      msg.className = 'msg success';
+      setTimeout(() => window.location.href = '/gallery', 1500);
+    }
+  });
+</script>
+
+<style>
+  .form-wrap { background: #f7f9ff; min-height: calc(100vh - 64px - 120px); padding: 3rem 2rem; }
+  .form-box { background: #fff; border-radius: 16px; padding: 2.5rem; max-width: 700px; margin: 0 auto; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .form-header { margin-bottom: 2rem; }
+  .back { color: #1a4fa0; font-size: 0.9rem; }
+  .form-header h1 { font-size: 1.6rem; color: #1a2a4a; margin-top: 0.8rem; }
+  label { display: block; font-size: 0.9rem; color: #555; margin-bottom: 1.2rem; font-weight: 600; }
+  .required { color: #dc2626; }
+  input[type="text"] {
+    display: block; width: 100%; margin-top: 0.4rem;
+    padding: 0.75rem 1rem; border: 1px solid #ddd; border-radius: 8px;
+    font-size: 1rem; outline: none; transition: border 0.2s;
+  }
+  input[type="text"]:focus { border-color: #1a4fa0; }
+  input[type="file"] { display: block; margin-top: 0.4rem; font-size: 0.9rem; }
+  .preview { margin-top: 1rem; border-radius: 8px; overflow: hidden; max-width: 100%; }
+  .preview img { width: 100%; max-height: 300px; object-fit: cover; border-radius: 8px; }
+  .preview.hidden { display: none; }
+  .btn-row { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; }
+  .btn-cancel { padding: 0.75rem 1.5rem; border: 1px solid #ddd; border-radius: 8px; color: #666; font-size: 0.95rem; }
+  button[type="submit"] {
+    padding: 0.75rem 2rem; background: #1a4fa0; color: #fff;
+    border: none; border-radius: 8px; font-size: 0.95rem;
+    font-weight: 600; cursor: pointer;
+  }
+  button:disabled { background: #aaa; cursor: not-allowed; }
+  .msg { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1.2rem; font-size: 0.9rem; }
+  .msg.hidden { display: none; }
+  .msg.error { background: #fef2f2; color: #dc2626; }
+  .msg.success { background: #f0fdf4; color: #16a34a; }
+</style>

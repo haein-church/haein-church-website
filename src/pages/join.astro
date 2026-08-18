@@ -1,0 +1,122 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="회원가입 신청 - 해인교회">
+  <main class="join-wrap">
+    <div class="join-box">
+      <h1>✝ 해인교회 회원가입 신청</h1>
+      <p class="sub">신청 후 관리자 승인이 완료되면 이메일로 안내드립니다.</p>
+
+      <div id="msg" class="msg hidden"></div>
+      <div id="successBox" class="success-box hidden">
+        <div class="success-icon">✓</div>
+        <h2>신청이 완료되었습니다!</h2>
+        <p>관리자 승인 후 이메일로 안내드리겠습니다.<br />감사합니다.</p>
+        <a href="/" class="home-btn">홈으로 돌아가기</a>
+      </div>
+
+      <form id="joinForm">
+        <label>이름
+          <input type="text" id="name" placeholder="홍길동" required />
+        </label>
+        <label>이메일
+          <input type="email" id="email" placeholder="example@email.com" required />
+        </label>
+        <label>가입 인사 <span class="optional">(선택)</span>
+          <textarea id="message" placeholder="간단한 자기소개나 가입 이유를 적어주세요" rows="4"></textarea>
+        </label>
+        <button type="submit" id="submitBtn">가입 신청하기</button>
+      </form>
+
+      <p class="login-link">이미 계정이 있으신가요? <a href="/login">로그인</a></p>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  const form = document.getElementById('joinForm') as HTMLFormElement;
+  const msg = document.getElementById('msg') as HTMLDivElement;
+  const successBox = document.getElementById('successBox') as HTMLDivElement;
+  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.textContent = '신청 중...';
+    submitBtn.disabled = true;
+
+    const name = (document.getElementById('name') as HTMLInputElement).value;
+    const email = (document.getElementById('email') as HTMLInputElement).value;
+    const message = (document.getElementById('message') as HTMLTextAreaElement).value;
+
+    const { error } = await supabase.from('join_requests').insert({ name, email, message });
+
+    if (error) {
+      if (error.code === '23505') {
+        msg.textContent = '이미 신청된 이메일입니다.';
+      } else {
+        msg.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
+      }
+      msg.className = 'msg error';
+      submitBtn.textContent = '가입 신청하기';
+      submitBtn.disabled = false;
+    } else {
+      form.classList.add('hidden');
+      successBox.classList.remove('hidden');
+    }
+  });
+</script>
+
+<style>
+  .join-wrap {
+    min-height: calc(100vh - 64px - 120px);
+    display: flex; align-items: center; justify-content: center;
+    background: #f7f9ff; padding: 2rem;
+  }
+  .join-box {
+    background: #fff; border-radius: 16px;
+    padding: 3rem 2.5rem; width: 100%; max-width: 480px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+  }
+  .join-box h1 { font-size: 1.4rem; color: #1a4fa0; margin-bottom: 0.5rem; text-align: center; }
+  .sub { color: #888; font-size: 0.9rem; text-align: center; margin-bottom: 2rem; line-height: 1.6; }
+  label { display: block; font-size: 0.85rem; color: #555; font-weight: 600; margin-bottom: 1.1rem; }
+  .optional { color: #aaa; font-weight: 400; }
+  input, textarea {
+    display: block; width: 100%; margin-top: 0.4rem;
+    padding: 0.75rem 1rem; border: 1px solid #ddd; border-radius: 8px;
+    font-size: 1rem; font-family: inherit; outline: none; transition: border 0.2s;
+  }
+  input:focus, textarea:focus { border-color: #1a4fa0; }
+  textarea { resize: vertical; }
+  button {
+    width: 100%; padding: 0.9rem; margin-top: 0.5rem;
+    background: #1a4fa0; color: #fff; border: none;
+    border-radius: 8px; font-size: 1rem; font-weight: 600;
+    cursor: pointer; transition: background 0.2s;
+  }
+  button:hover { background: #0d2d6b; }
+  button:disabled { background: #aaa; cursor: not-allowed; }
+  .msg { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
+  .msg.hidden { display: none; }
+  .msg.error { background: #fef2f2; color: #dc2626; }
+  .login-link { text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: #888; }
+  .login-link a { color: #1a4fa0; }
+  .hidden { display: none !important; }
+
+  /* 성공 화면 */
+  .success-box { text-align: center; padding: 2rem 0; }
+  .success-icon {
+    width: 60px; height: 60px; background: #1a4fa0; color: #fff;
+    border-radius: 50%; font-size: 1.8rem; display: flex;
+    align-items: center; justify-content: center; margin: 0 auto 1.2rem;
+  }
+  .success-box h2 { font-size: 1.3rem; color: #1a2a4a; margin-bottom: 0.8rem; }
+  .success-box p { color: #666; font-size: 0.95rem; line-height: 1.7; margin-bottom: 1.5rem; }
+  .home-btn {
+    display: inline-block; padding: 0.75rem 2rem;
+    background: #1a4fa0; color: #fff; border-radius: 50px; font-weight: 600;
+  }
+</style>

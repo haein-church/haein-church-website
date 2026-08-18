@@ -1,0 +1,48 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="교회소개 - 해인교회">
+  <main class="page">
+    <div class="page-hero">
+      <h1>교회 소개</h1>
+      <p>하나님의 말씀 위에 세워진 해인교회</p>
+    </div>
+    <div class="content">
+      <section>
+        <h2>해인교회는</h2>
+        <p>해인교회는 인천 계양구 계산동에 위치한 교회로, 하나님의 말씀을 중심으로 예배하고 지역사회를 섬기며 다음 세대를 세워가는 공동체입니다.</p>
+        <p>교회는 노숙인 쉼터 운영, 몰래산타 이웃사랑 나눔 행사 등 사회복지선교사역을 통해 14년 이상 지역사회와 함께해 왔습니다.</p>
+      </section>
+      <section>
+        <h2>교회 비전</h2>
+        <ul>
+          <li>✝ 말씀 중심의 예배 공동체</li>
+          <li>✝ 서로 사랑하는 돌봄 공동체</li>
+          <li>✝ 지역사회를 섬기는 봉사 공동체</li>
+          <li>✝ 복음을 전하는 선교 공동체</li>
+        </ul>
+      </section>
+      <section>
+        <h2>연락처</h2>
+        <p>주소: 인천 계양구 계양산로 91 (계산동)</p>
+        <p>전화: 032-555-7004</p>
+      </section>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .page-hero {
+    background: linear-gradient(135deg, #1a4fa0, #0d2d6b);
+    color: #fff; text-align: center; padding: 4rem 2rem;
+  }
+  .page-hero h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .page-hero p { opacity: 0.8; }
+  .content { max-width: 800px; margin: 0 auto; padding: 3rem 2rem; }
+  .content section { margin-bottom: 3rem; }
+  .content h2 { font-size: 1.4rem; color: #1a4fa0; margin-bottom: 1rem; border-left: 4px solid #1a4fa0; padding-left: 0.8rem; }
+  .content p { color: #444; line-height: 1.8; margin-bottom: 0.8rem; }
+  .content ul { list-style: none; padding-left: 0.5rem; }
+  .content ul li { padding: 0.5rem 0; color: #444; line-height: 1.8; }
+</style>

@@ -1,0 +1,99 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="로그인 - 해인교회">
+  <main class="login-wrap">
+    <div class="login-box">
+      <h1>✝ 해인교회</h1>
+      <p class="sub">회원 로그인</p>
+
+      <div id="msg" class="msg hidden"></div>
+
+      <form id="loginForm">
+        <label>이메일
+          <input type="email" id="email" placeholder="이메일 주소" required />
+        </label>
+        <label>비밀번호
+          <input type="password" id="password" placeholder="비밀번호" required />
+        </label>
+        <button type="submit" id="submitBtn">로그인</button>
+      </form>
+
+      <p class="back"><a href="/">← 홈으로 돌아가기</a></p>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  const form = document.getElementById('loginForm') as HTMLFormElement;
+  const msg = document.getElementById('msg') as HTMLDivElement;
+  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+
+  // 이미 로그인된 경우 관리자 페이지로
+  supabase.auth.getSession().then(({ data }) => {
+    if (data.session) window.location.href = '/admin';
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = (document.getElementById('email') as HTMLInputElement).value;
+    const password = (document.getElementById('password') as HTMLInputElement).value;
+
+    submitBtn.textContent = '로그인 중...';
+    submitBtn.disabled = true;
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      msg.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
+      msg.className = 'msg error';
+      submitBtn.textContent = '로그인';
+      submitBtn.disabled = false;
+    } else {
+      msg.textContent = '로그인 성공! 이동 중...';
+      msg.className = 'msg success';
+      window.location.href = '/admin';
+    }
+  });
+</script>
+
+<style>
+  .login-wrap {
+    min-height: calc(100vh - 64px - 120px);
+    display: flex; align-items: center; justify-content: center;
+    background: #f7f9ff; padding: 2rem;
+  }
+  .login-box {
+    background: #fff; border-radius: 16px;
+    padding: 3rem 2.5rem; width: 100%; max-width: 420px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  .login-box h1 { font-size: 1.6rem; color: #1a4fa0; margin-bottom: 0.3rem; }
+  .sub { color: #888; margin-bottom: 2rem; font-size: 0.95rem; }
+  form { text-align: left; }
+  label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 1rem; }
+  input {
+    display: block; width: 100%; margin-top: 0.3rem;
+    padding: 0.75rem 1rem; border: 1px solid #ddd; border-radius: 8px;
+    font-size: 1rem; outline: none; transition: border 0.2s;
+  }
+  input:focus { border-color: #1a4fa0; }
+  button {
+    width: 100%; padding: 0.85rem; margin-top: 0.5rem;
+    background: #1a4fa0; color: #fff; border: none;
+    border-radius: 8px; font-size: 1rem; font-weight: 600;
+    cursor: pointer; transition: background 0.2s;
+  }
+  button:hover { background: #0d2d6b; }
+  button:disabled { background: #aaa; cursor: not-allowed; }
+  .msg { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
+  .msg.hidden { display: none; }
+  .msg.error { background: #fef2f2; color: #dc2626; }
+  .msg.success { background: #f0fdf4; color: #16a34a; }
+  .back { margin-top: 1.5rem; font-size: 0.85rem; }
+  .back a { color: #1a4fa0; }
+</style>

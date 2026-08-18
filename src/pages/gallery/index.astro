@@ -1,0 +1,109 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="갤러리 - 해인교회">
+  <main>
+    <div class="page-hero">
+      <h1>갤러리</h1>
+      <p>해인교회 사진 모음</p>
+    </div>
+    <div class="content">
+      <div id="gallery" class="gallery-grid">
+        <p class="loading">사진을 불러오는 중...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- 확대 모달 -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-content">
+      <button id="modalClose" class="modal-close">✕</button>
+      <img id="modalImg" src="" alt="" />
+      <p id="modalCaption" class="modal-caption"></p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  const container = document.getElementById('gallery') as HTMLDivElement;
+  const modal = document.getElementById('modal') as HTMLDivElement;
+  const modalImg = document.getElementById('modalImg') as HTMLImageElement;
+  const modalCaption = document.getElementById('modalCaption') as HTMLParagraphElement;
+
+  const { data, error } = await supabase
+    .from('gallery')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error || !data || data.length === 0) {
+    container.innerHTML = '<p class="empty">등록된 사진이 없습니다.</p>';
+  } else {
+    container.innerHTML = data.map((item: any) => `
+      <div class="gallery-item" data-url="${item.image_url}" data-caption="${item.caption || item.title}">
+        <img src="${item.image_url}" alt="${item.title}" />
+        <div class="overlay">
+          <p>${item.title}</p>
+        </div>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.gallery-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const url = el.getAttribute('data-url') ?? '';
+        const cap = el.getAttribute('data-caption') ?? '';
+        modalImg.src = url;
+        modalCaption.textContent = cap;
+        modal.classList.remove('hidden');
+      });
+    });
+  }
+
+  document.getElementById('modalClose')?.addEventListener('click', () => modal.classList.add('hidden'));
+  document.getElementById('modalBackdrop')?.addEventListener('click', () => modal.classList.add('hidden'));
+</script>
+
+<style>
+  .page-hero {
+    background: linear-gradient(135deg, #1a4fa0, #0d2d6b);
+    color: #fff; text-align: center; padding: 4rem 2rem;
+  }
+  .page-hero h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .page-hero p { opacity: 0.8; }
+  .content { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; }
+  .loading, .empty { text-align: center; color: #888; padding: 3rem; grid-column: 1/-1; }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+  .gallery-item {
+    position: relative; border-radius: 12px; overflow: hidden;
+    aspect-ratio: 4/3; cursor: pointer;
+  }
+  .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+  .gallery-item:hover img { transform: scale(1.05); }
+  .overlay {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.6));
+    color: #fff; padding: 1rem; opacity: 0; transition: opacity 0.3s;
+  }
+  .gallery-item:hover .overlay { opacity: 1; }
+  .overlay p { font-size: 0.9rem; }
+
+  /* Modal */
+  .modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; }
+  .modal.hidden { display: none; }
+  .modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.85); }
+  .modal-content { position: relative; z-index: 1; max-width: 90vw; max-height: 90vh; text-align: center; }
+  .modal-content img { max-width: 100%; max-height: 80vh; border-radius: 8px; object-fit: contain; }
+  .modal-close {
+    position: absolute; top: -2.5rem; right: 0;
+    background: none; border: none; color: #fff;
+    font-size: 1.5rem; cursor: pointer;
+  }
+  .modal-caption { color: #fff; margin-top: 0.8rem; font-size: 0.95rem; }
+</style>

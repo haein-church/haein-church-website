@@ -1,0 +1,112 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="소식 작성 - 해인교회">
+  <main class="form-wrap">
+    <div class="form-box">
+      <div class="form-header">
+        <a href="/admin" class="back">← 관리자 페이지</a>
+        <h1>소식 작성</h1>
+      </div>
+      <div id="msg" class="msg hidden"></div>
+      <form id="newsForm">
+        <label>제목
+          <input type="text" id="title" placeholder="소식 제목을 입력하세요" required />
+        </label>
+        <label>내용
+          <textarea id="content" placeholder="내용을 입력하세요" rows="10" required></textarea>
+        </label>
+        <label>대표 이미지 (선택)
+          <input type="file" id="image" accept="image/*" />
+        </label>
+        <div class="btn-row">
+          <a href="/admin" class="btn-cancel">취소</a>
+          <button type="submit" id="submitBtn">소식 올리기</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  const msg = document.getElementById('msg') as HTMLDivElement;
+  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+
+  supabase.auth.getSession().then(({ data }) => {
+    if (!data.session) window.location.href = '/login';
+  });
+
+  document.getElementById('newsForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.textContent = '올리는 중...';
+    submitBtn.disabled = true;
+
+    const title = (document.getElementById('title') as HTMLInputElement).value;
+    const content = (document.getElementById('content') as HTMLTextAreaElement).value;
+    const imageFile = (document.getElementById('image') as HTMLInputElement).files?.[0];
+    const { data: { session } } = await supabase.auth.getSession();
+
+    let image_url = null;
+
+    if (imageFile) {
+      const fileName = `${Date.now()}_${imageFile.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('news-images')
+        .upload(fileName, imageFile);
+      if (!uploadError) {
+        const { data } = supabase.storage.from('news-images').getPublicUrl(fileName);
+        image_url = data.publicUrl;
+      }
+    }
+
+    const { error } = await supabase.from('news').insert({
+      title,
+      content,
+      image_url,
+      author_id: session?.user.id,
+    });
+
+    if (error) {
+      msg.textContent = '오류가 발생했습니다: ' + error.message;
+      msg.className = 'msg error';
+      submitBtn.textContent = '소식 올리기';
+      submitBtn.disabled = false;
+    } else {
+      msg.textContent = '소식이 등록되었습니다!';
+      msg.className = 'msg success';
+      setTimeout(() => window.location.href = '/news', 1500);
+    }
+  });
+</script>
+
+<style>
+  .form-wrap { background: #f7f9ff; min-height: calc(100vh - 64px - 120px); padding: 3rem 2rem; }
+  .form-box { background: #fff; border-radius: 16px; padding: 2.5rem; max-width: 700px; margin: 0 auto; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .form-header { margin-bottom: 2rem; }
+  .back { color: #1a4fa0; font-size: 0.9rem; }
+  .form-header h1 { font-size: 1.6rem; color: #1a2a4a; margin-top: 0.8rem; }
+  label { display: block; font-size: 0.9rem; color: #555; margin-bottom: 1.2rem; font-weight: 600; }
+  input[type="text"], textarea {
+    display: block; width: 100%; margin-top: 0.4rem;
+    padding: 0.75rem 1rem; border: 1px solid #ddd; border-radius: 8px;
+    font-size: 1rem; font-family: inherit; outline: none; transition: border 0.2s;
+  }
+  input[type="text"]:focus, textarea:focus { border-color: #1a4fa0; }
+  textarea { resize: vertical; }
+  input[type="file"] { display: block; margin-top: 0.4rem; font-size: 0.9rem; }
+  .btn-row { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; }
+  .btn-cancel { padding: 0.75rem 1.5rem; border: 1px solid #ddd; border-radius: 8px; color: #666; font-size: 0.95rem; }
+  button[type="submit"] {
+    padding: 0.75rem 2rem; background: #1a4fa0; color: #fff;
+    border: none; border-radius: 8px; font-size: 0.95rem;
+    font-weight: 600; cursor: pointer;
+  }
+  button:disabled { background: #aaa; cursor: not-allowed; }
+  .msg { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1.2rem; font-size: 0.9rem; }
+  .msg.hidden { display: none; }
+  .msg.error { background: #fef2f2; color: #dc2626; }
+  .msg.success { background: #f0fdf4; color: #16a34a; }
+</style>

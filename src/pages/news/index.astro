@@ -1,0 +1,61 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="교회소식 - 해인교회">
+  <main>
+    <div class="page-hero">
+      <h1>교회소식</h1>
+      <p>해인교회의 소식과 공지사항</p>
+    </div>
+    <div class="content">
+      <div id="newsList" class="news-list">
+        <p class="loading">소식을 불러오는 중...</p>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  const container = document.getElementById('newsList') as HTMLDivElement;
+
+  const { data, error } = await supabase
+    .from('news')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error || !data || data.length === 0) {
+    container.innerHTML = '<p class="empty">등록된 소식이 없습니다.</p>';
+  } else {
+    container.innerHTML = data.map((item: any) => `
+      <article class="news-item">
+        ${item.image_url ? `<img src="${item.image_url}" alt="${item.title}" class="news-img" />` : ''}
+        <div class="news-body">
+          <h2>${item.title}</h2>
+          <p class="date">${new Date(item.created_at).toLocaleDateString('ko-KR')}</p>
+          <p class="news-content">${item.content.replace(/\n/g, '<br>')}</p>
+        </div>
+      </article>
+    `).join('');
+  }
+</script>
+
+<style>
+  .page-hero {
+    background: linear-gradient(135deg, #1a4fa0, #0d2d6b);
+    color: #fff; text-align: center; padding: 4rem 2rem;
+  }
+  .page-hero h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .page-hero p { opacity: 0.8; }
+  .content { max-width: 800px; margin: 0 auto; padding: 3rem 2rem; }
+  .loading, .empty { text-align: center; color: #888; padding: 3rem; }
+  .news-item {
+    border-bottom: 1px solid #eee; padding-bottom: 2.5rem; margin-bottom: 2.5rem;
+  }
+  .news-img { width: 100%; max-height: 350px; object-fit: cover; border-radius: 12px; margin-bottom: 1.2rem; }
+  .news-item h2 { font-size: 1.4rem; color: #1a2a4a; margin-bottom: 0.3rem; }
+  .date { font-size: 0.85rem; color: #999; margin-bottom: 0.8rem; }
+  .news-content { color: #444; line-height: 1.8; font-size: 0.95rem; }
+</style>
