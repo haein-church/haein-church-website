@@ -8,7 +8,7 @@ import Layout from '../layouts/Layout.astro';
       <h1>✝ 해인교회</h1>
       <p class="sub">회원 로그인</p>
 
-      <div id="msg" class="msg hidden"></div>
+      <div id="msg" class="msg hidden" role="status" aria-live="polite"></div>
 
       <form id="loginForm">
         <label>이메일
@@ -20,21 +20,25 @@ import Layout from '../layouts/Layout.astro';
         <button type="submit" id="submitBtn">로그인</button>
       </form>
 
+      <p class="back"><a href="/join/">처음 오셨나요? 회원가입 신청</a></p>
       <p class="back"><a href="/">← 홈으로 돌아가기</a></p>
     </div>
   </main>
 </Layout>
 
 <script>
-  import { supabase } from '../lib/supabase';
+  import { membershipClient, connectionMessage, isAdministrator } from '../lib/membership';
+  async function initialize() {
+    const supabase = await membershipClient();
+    if (!supabase) { document.getElementById('msg')!.textContent = connectionMessage; document.getElementById('msg')!.className = 'msg error'; document.querySelector<HTMLButtonElement>('#submitBtn')!.disabled = true; return; }
 
   const form = document.getElementById('loginForm') as HTMLFormElement;
   const msg = document.getElementById('msg') as HTMLDivElement;
   const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
 
-  // 이미 로그인된 경우 관리자 페이지로
+  // 이미 로그인된 경우 본인의 가입 상태로 이동
   supabase.auth.getSession().then(({ data }) => {
-    if (data.session) window.location.href = '/admin';
+    if (data.session) window.location.href = '/membership/';
   });
 
   form.addEventListener('submit', async (e) => {
@@ -45,19 +49,24 @@ import Layout from '../layouts/Layout.astro';
     submitBtn.textContent = '로그인 중...';
     submitBtn.disabled = true;
 
+    try {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      msg.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
+      msg.textContent = '로그인하지 못했습니다. 이메일·비밀번호와 이메일 인증 여부를 확인해 주세요.';
       msg.className = 'msg error';
       submitBtn.textContent = '로그인';
       submitBtn.disabled = false;
     } else {
       msg.textContent = '로그인 성공! 이동 중...';
       msg.className = 'msg success';
-      window.location.href = '/admin';
+      window.location.href = await isAdministrator(supabase) ? '/admin/' : '/membership/';
     }
+    } catch { msg.textContent = '연결하지 못했습니다. 잠시 후 다시 시도해 주세요.'; msg.className = 'msg error'; }
+    finally { submitBtn.textContent = '로그인'; submitBtn.disabled = false; }
   });
+  }
+  initialize().catch(() => { document.getElementById('msg')!.textContent = '로그인 서비스를 연결하지 못했습니다.'; document.getElementById('msg')!.className = 'msg error'; });
 </script>
 
 <style>

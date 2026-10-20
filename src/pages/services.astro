@@ -1,0 +1,6 @@
+---
+import ChurchPage from '../components/ChurchPage.astro';
+import { pages } from '../lib/onmam';
+const record=pages.find(p=>p.id==='7')!;
+---
+<ChurchPage record={record}/>

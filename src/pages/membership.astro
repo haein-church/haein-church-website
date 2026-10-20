@@ -1,0 +1,64 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="내 가입 상태 - 해인교회">
+  <main>
+    <h1>내 가입 상태</h1>
+    <p id="memberStatus" role="status" aria-live="polite">가입 상태를 확인하고 있습니다.</p>
+    <section id="memberDetails" hidden>
+      <h2 id="statusTitle"></h2><p id="statusDescription"></p>
+      <dl><dt>이름</dt><dd id="memberName"></dd><dt>신청일</dt><dd id="requestDate"></dd></dl>
+      <button type="button" id="refreshStatus">승인 상태 새로고침</button>
+      <a href="/boards/">교회 게시판 보기</a>
+    </section>
+    <p><a id="adminLink" href="/admin/" hidden>관리자 페이지</a></p>
+    <button type="button" id="memberLogout" hidden>로그아웃</button>
+    <p><a href="/login/">로그인</a> · <a href="/">홈으로</a></p>
+  </main>
+</Layout>
+<script>
+  import { membershipClient, connectionMessage, isAdministrator, membershipStatus } from '../lib/membership';
+  const status = document.getElementById('memberStatus')!;
+  const details = document.getElementById('memberDetails')!;
+  async function load() {
+    const client = await membershipClient();
+    if (!client) { status.textContent = connectionMessage; return; }
+    const { data: { user }, error: authError } = await client.auth.getUser();
+    if (authError || !user) { details.hidden = true; status.textContent = '로그인이 필요합니다. 이메일 인증을 마친 뒤 로그인해 주세요.'; return; }
+    const logout = document.getElementById('memberLogout')!;
+    logout.hidden = false;
+    logout.onclick = async () => {
+      const { error } = await client.auth.signOut();
+      if (error) { status.textContent = '로그아웃하지 못했습니다. 다시 시도해 주세요.'; return; }
+      location.replace('/login/');
+    };
+    document.getElementById('adminLink')!.hidden = !await isAdministrator(client);
+    const { data, error } = await client.from('join_requests')
+      .select('name,status,created_at').eq('user_id', user.id).maybeSingle();
+    if (error) throw new Error('가입 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    if (!data) { details.hidden = true; status.textContent = '연결된 가입 신청이 없습니다. 관리자 계정은 관리자 페이지를 이용해 주세요.'; return; }
+    status.textContent = '현재 가입 신청 상태입니다.';
+    document.getElementById('statusTitle')!.textContent = membershipStatus[data.status as keyof typeof membershipStatus] ?? '상태 확인 필요';
+    document.getElementById('statusDescription')!.textContent = data.status === 'approved'
+      ? '회원 승인이 완료되었습니다. 해인교회에 오신 것을 환영합니다.'
+      : data.status === 'rejected' ? '가입 신청이 승인되지 않았습니다. 담당 관리자에게 문의해 주세요.'
+      : '관리자가 신청 내용을 확인하고 있습니다. 승인 후 이 화면에 결과가 표시됩니다.';
+    document.getElementById('memberName')!.textContent = data.name;
+    document.getElementById('requestDate')!.textContent = new Date(data.created_at).toLocaleDateString('ko-KR');
+    details.hidden = false;
+  }
+  async function refresh() {
+    try { await load(); }
+    catch (error) { details.hidden = true; status.textContent = error instanceof Error ? error.message : '연결하지 못했습니다.'; }
+  }
+  document.getElementById('refreshStatus')!.addEventListener('click', refresh);
+  refresh();
+</script>
+<style>
+  main {max-width:680px;margin:3rem auto;padding:2rem;background:#f5f8fc;border-radius:16px;line-height:1.8}
+  h1,h2 {color:#1a4fa0;margin-bottom:1rem} section {margin:1.5rem 0;background:white;padding:1.5rem;border-radius:12px}
+  dl {margin:1rem 0} dt {font-weight:600} dd {margin-bottom:.5rem}
+  button {padding:.7rem 1rem;border:1px solid #cbd5e1;border-radius:8px;background:white;cursor:pointer;margin:.5rem .5rem .5rem 0}
+  a {color:#1a4fa0} [hidden]{display:none !important}
+  @media(max-width:700px){main{margin:1rem;padding:1.3rem}}
+</style>

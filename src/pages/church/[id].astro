@@ -1,0 +1,7 @@
+---
+import ChurchPage from '../../components/ChurchPage.astro';
+import { pages } from '../../lib/onmam';
+export function getStaticPaths(){return pages.map(record=>({params:{id:record.id},props:{record}}));}
+const {record}=Astro.props;
+---
+<ChurchPage record={record}/>

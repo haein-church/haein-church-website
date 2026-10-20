@@ -1,0 +1,7 @@
+---
+import Layout from '../layouts/Layout.astro';
+import BoardList from '../components/BoardList.astro';
+import { groups, posts, menuUrl } from '../lib/onmam';
+const group=groups.find(g=>g.name==='선교사역')!;
+---
+<Layout title="선교사역 - 해인교회"><main style="max-width:1088px;margin:0 auto;padding:3rem 1.5rem 4rem"><h1 style="color:#173d71;margin-bottom:1rem">선교사역</h1><p style="color:#667085;margin-bottom:2rem">이웃과 함께 하나님 나라를 가꾸어 갑니다.</p><nav style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">{group.children.map(item=><a href={menuUrl(item)} style="padding:.7rem;border:1px solid #d9e2ee;border-radius:5px">{item.name}</a>)}</nav><BoardList items={posts.filter(p=>p.group==='선교사역').slice(0,15)} showBoard/></main></Layout>

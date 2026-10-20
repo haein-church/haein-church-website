@@ -1,0 +1,25 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { groups, posts, postsFor, menuUrl, postUrl } from '../../lib/onmam';
+---
+<Layout title="전체 게시판 - 해인교회">
+ <div class="heading"><p>해인교회의 이야기와 발자취</p><h1>교회 자료실</h1></div>
+ <main class="directory">
+  <section class="search-panel" aria-label="자료 검색"><label for="archive-search">전체 게시글 검색</label><input id="archive-search" type="search" placeholder="제목, 게시판 또는 작성자를 입력하세요"/><p id="search-status" role="status" aria-live="polite">{posts.length}개의 게시글에서 검색할 수 있습니다.</p><ul id="search-results" hidden>{posts.map(p=><li data-search={`${p.title} ${p.boardName} ${p.author??''}`.toLocaleLowerCase()} hidden><a href={postUrl(p)}><span>{p.boardName}</span><strong>{p.title}</strong><time>{p.date}</time></a></li>)}</ul></section>
+  <div class="categories">{groups.map(group=><section><h2>{group.name}</h2><div class="menu-grid">{group.children.map(item=><a href={menuUrl(item)}><span>{item.name}</span><small>{item.kind==='page'?'교회 안내':`${postsFor(item.id).length}개의 글`}</small><b aria-hidden="true">→</b></a>)}</div></section>)}</div>
+ </main>
+</Layout>
+<script>
+ const input=document.getElementById('archive-search') as HTMLInputElement;
+ const list=document.getElementById('search-results')!;
+ const status=document.getElementById('search-status')!;
+ const rows=Array.from(list.querySelectorAll<HTMLElement>('li'));
+ input.addEventListener('input',()=>{
+  const q=input.value.trim().toLocaleLowerCase();let found=0;
+  rows.forEach(row=>{const match=!!q&&(row.dataset.search??'').includes(q);row.hidden=!match;if(match)found++;});
+  list.hidden=!q;status.textContent=q?`${found}개의 게시글을 찾았습니다.`:`${rows.length}개의 게시글에서 검색할 수 있습니다.`;
+ });
+</script>
+<style>
+.heading{background:#f0f5fc;padding:3rem max(1.5rem,calc((100% - 1040px)/2));border-bottom:1px solid #e1e8f4}.heading p{color:#587399;font-size:.9rem;margin-bottom:.5rem}.heading h1{color:#163c73;font-size:2.2rem}.directory{max-width:1088px;margin:auto;padding:2rem 1.5rem 4rem}.search-panel{padding:1.5rem;background:#f6f8fb;border:1px solid #e1e7ef;border-radius:8px;margin-bottom:3rem}.search-panel label{display:block;font-weight:700;margin-bottom:.7rem}.search-panel input{width:100%;padding:.9rem 1rem;border:1px solid #cbd6e5;border-radius:5px;font:inherit;background:white}.search-panel p{font-size:.85rem;color:#6b778b;margin-top:.6rem}.search-panel ul{list-style:none;margin-top:1rem;max-height:500px;overflow:auto}.search-panel li a{display:grid;grid-template-columns:120px 1fr 90px;gap:1rem;padding:.85rem;border-bottom:1px solid #dce3ec;align-items:center}.search-panel li span,.search-panel time{font-size:.8rem;color:#667085}.search-panel strong{font-size:.95rem;font-weight:500}.categories>section{margin-bottom:2.5rem}.categories h2{font-size:1.3rem;color:#173d71;margin-bottom:1rem}.menu-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.8rem}.menu-grid a{display:grid;grid-template-columns:1fr auto;padding:1.2rem;border:1px solid #dce4ef;border-radius:6px;gap:.4rem;background:#fff}.menu-grid a:hover{background:#f3f7ff;border-color:#9cb6db}.menu-grid small{color:#7a8698;font-size:.8rem;grid-column:1}.menu-grid b{grid-column:2;grid-row:1/3;color:#1a4fa0;align-self:center}@media(max-width:700px){.menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.search-panel li a{grid-template-columns:1fr;gap:.3rem}}@media(max-width:400px){.menu-grid{grid-template-columns:1fr}}
+</style>

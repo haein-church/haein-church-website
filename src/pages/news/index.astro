@@ -1,5 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import BoardList from '../../components/BoardList.astro';
+import { postsFor } from '../../lib/onmam';
+const bulletins=postsFor('51');
 ---
 
 <Layout title="교회소식 - 해인교회">
@@ -9,6 +12,8 @@ import Layout from '../../layouts/Layout.astro';
       <p>해인교회의 소식과 공지사항</p>
     </div>
     <div class="content">
+      <section style="margin-bottom:3rem"><h2 style="margin-bottom:1rem">주보</h2><BoardList items={bulletins.slice(0,10)}/><a href="/boards/51/" style="display:inline-block;margin-top:1rem;color:#1a4fa0">주보 전체 {bulletins.length}개 보기 →</a></section>
+      <h2 style="margin-bottom:1rem">새 교회소식</h2>
       <div id="newsList" class="news-list">
         <p class="loading">소식을 불러오는 중...</p>
       </div>
@@ -17,7 +22,8 @@ import Layout from '../../layouts/Layout.astro';
 </Layout>
 
 <script>
-  import { supabase } from '../../lib/supabase';
+  if (import.meta.env.PUBLIC_SUPABASE_URL && import.meta.env.PUBLIC_SUPABASE_ANON_KEY) {
+  const { supabase } = await import('../../lib/supabase');
 
   const container = document.getElementById('newsList') as HTMLDivElement;
 
@@ -39,6 +45,10 @@ import Layout from '../../layouts/Layout.astro';
         </div>
       </article>
     `).join('');
+  }
+  } else {
+    const container=document.getElementById('newsList');
+    if(container)container.textContent='등록된 새 소식이 없습니다.';
   }
 </script>
 

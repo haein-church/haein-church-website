@@ -1,0 +1,12 @@
+---
+import { postUrl, type ArchiveRecord } from '../lib/onmam';
+interface Props { items: ArchiveRecord[]; showBoard?: boolean }
+const { items, showBoard=false }=Astro.props;
+---
+<ul class="post-list">
+{items.map(post => <li><a href={postUrl(post)}>{showBoard && <span class="board">{post.boardName}</span>}<span class="title">{post.title}</span><span class="date">{post.date ?? ''}</span></a></li>)}
+</ul>
+{items.length===0 && <p class="empty">등록된 게시글이 없습니다.</p>}
+<style>
+.post-list{list-style:none;border-top:2px solid #1a4fa0}.post-list li{border-bottom:1px solid #e6eaf0}.post-list a{display:flex;gap:1rem;align-items:center;padding:1.15rem .7rem;line-height:1.6}.post-list a:hover{background:#f4f7fd}.title{flex:1;overflow-wrap:anywhere}.date{font-size:.85rem;color:#788397;white-space:nowrap}.board{font-size:.8rem;color:#1a4fa0;background:#edf3ff;border-radius:4px;padding:.15rem .5rem}.empty{padding:3rem 1rem;text-align:center;color:#788397}@media(max-width:600px){.post-list a{flex-wrap:wrap;gap:.3rem}.title{flex-basis:100%}.date{font-size:.8rem}}
+</style>

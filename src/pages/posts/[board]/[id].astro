@@ -1,0 +1,20 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ArchiveContent from '../../../components/ArchiveContent.astro';
+import { posts, postsFor, postUrl } from '../../../lib/onmam';
+export function getStaticPaths(){return posts.map(record=>({params:{board:record.boardId!,id:record.id},props:{record}}));}
+const {record}=Astro.props;
+const siblings=postsFor(record.boardId!);const position=siblings.findIndex(p=>p.id===record.id);
+const newer=siblings[position-1],older=siblings[position+1];
+---
+<Layout title={`${record.title} - 해인교회`}>
+ <main class="article-wrap">
+  <p class="breadcrumb"><a href="/boards/">게시판</a> / <a href={`/boards/${record.boardId}/`}>{record.boardName}</a></p>
+  <article><header class="article-header"><h1>{record.title}</h1><p>{record.author&&<span>{record.author}</span>}<time datetime={record.date??undefined}>{record.date}</time></p></header><ArchiveContent record={record}/></article>
+  <nav class="article-nav" aria-label="이전 다음 글">{newer&&<a href={postUrl(newer)}>이전 글 · {newer.title}</a>}{older&&<a href={postUrl(older)}>다음 글 · {older.title}</a>}</nav>
+  <div class="back"><a href={`/boards/${record.boardId}/`}>← {record.boardName} 목록</a><a class="source" href={record.sourceUrl} target="_blank" rel="noopener noreferrer">기존 글 보기 ↗</a></div>
+ </main>
+</Layout>
+<style>
+.article-wrap{max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem}.breadcrumb{font-size:.85rem;color:#67778d;margin-bottom:2rem}.breadcrumb a{color:#1a4fa0}.article-header{display:block;position:static;height:auto;padding:0 0 1.6rem;border-bottom:1px solid #dce3ec;margin-bottom:2rem}.article-header h1{font-size:clamp(1.6rem,4vw,2.2rem);line-height:1.5;color:#173d71;overflow-wrap:anywhere}.article-header p{display:flex;gap:1rem;color:#7a8595;margin-top:.8rem;font-size:.85rem}.article-nav{display:grid;border-top:1px solid #e2e7ef;margin-top:2.5rem}.article-nav a{padding:1rem;border-bottom:1px solid #e2e7ef;font-size:.9rem}.article-nav a:hover{background:#f4f7fb}.back{display:flex;justify-content:space-between;gap:1rem;margin-top:2rem}.back a{color:#1a4fa0}.source{font-size:.85rem}
+</style>

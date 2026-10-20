@@ -10,7 +10,7 @@ import Layout from '../../layouts/Layout.astro';
         <h1>갤러리 사진 올리기</h1>
       </div>
       <div id="msg" class="msg hidden"></div>
-      <form id="galleryForm">
+      <form inert id="galleryForm">
         <label>사진 제목
           <input type="text" id="title" placeholder="사진 제목을 입력하세요" required />
         </label>
@@ -31,16 +31,19 @@ import Layout from '../../layouts/Layout.astro';
 </Layout>
 
 <script>
-  import { supabase } from '../../lib/supabase';
+  import { membershipClient, connectionMessage, requireAdministrator } from '../../lib/membership';
+  async function initialize() {
+    const supabase = await membershipClient();
+    if (!supabase) { document.getElementById('msg')!.textContent = connectionMessage; document.getElementById('msg')!.className = 'msg error'; return; }
+    if (!await requireAdministrator(supabase)) return;
+    document.querySelector('form')?.removeAttribute('inert');
 
   const msg = document.getElementById('msg') as HTMLDivElement;
   const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
   const imageInput = document.getElementById('image') as HTMLInputElement;
   const preview = document.getElementById('preview') as HTMLDivElement;
 
-  supabase.auth.getSession().then(({ data }) => {
-    if (!data.session) window.location.href = '/login';
-  });
+
 
   imageInput.addEventListener('change', () => {
     const file = imageInput.files?.[0];
@@ -97,6 +100,11 @@ import Layout from '../../layouts/Layout.astro';
       msg.className = 'msg success';
       setTimeout(() => window.location.href = '/gallery', 1500);
     }
+  });
+  }
+  initialize().catch(() => {
+    document.getElementById('msg')!.textContent = '관리자 권한을 확인하지 못했습니다. 다시 로그인해 주세요.';
+    document.getElementById('msg')!.className = 'msg error';
   });
 </script>
 

@@ -1,5 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { postsFor, postUrl } from '../lib/onmam';
+const latestBulletins=postsFor('51').slice(0,4);
 ---
 
 <Layout title="해인교회 - 인천 계양구">
@@ -73,24 +75,9 @@ import Layout from '../layouts/Layout.astro';
         <div class="recent-box">
           <h2>주보</h2>
           <ul>
-            <li>
-              <span class="date">2026.08.02</span>
-              <span class="title">20260802 주보</span>
-            </li>
-            <li>
-              <span class="date">2026.07.26</span>
-              <span class="title">20260726 주보</span>
-            </li>
-            <li>
-              <span class="date">2026.07.19</span>
-              <span class="title">20260719 주보</span>
-            </li>
-            <li>
-              <span class="date">2026.07.12</span>
-              <span class="title">20260712 주보</span>
-            </li>
+            {latestBulletins.map(post=><li><span class="date">{post.date?.replaceAll('-','.')}</span><a class="title" href={postUrl(post)}>{post.title}</a></li>)}
           </ul>
-          <a href="/news" class="more-link">더보기 →</a>
+          <a href="/boards/51/" class="more-link">더보기 →</a>
         </div>
       </div>
     </section>

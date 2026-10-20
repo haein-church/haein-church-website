@@ -4,6 +4,8 @@ import Layout from '../../layouts/Layout.astro';
 
 <Layout title="관리자 - 해인교회">
   <main class="admin-wrap">
+    <p id="adminStatus" role="status" aria-live="polite">관리자 권한 확인 중...</p>
+    <div id="adminContent" hidden>
     <div class="admin-header">
       <h1>관리자 페이지</h1>
       <div>
@@ -39,117 +41,120 @@ import Layout from '../../layouts/Layout.astro';
     <!-- 가입 신청 목록 -->
     <div class="requests-section">
       <div class="requests-header">
-        <h2>가입 신청 목록</h2>
+        <h2>회원가입 승인 관리</h2>
         <span id="pendingBadge" class="badge hidden"></span>
       </div>
-      <div id="requestsList">
+      <p class="review-help">이름과 가입 인사를 확인한 뒤 승인해 주세요. 승인 결과는 회원의 ‘내 가입 상태’에 반영됩니다.</p>
+      <div class="review-tools"><label>처리 상태 <select id="statusFilter"><option value="pending">승인 대기</option><option value="approved">승인 완료</option><option value="rejected">승인 거절</option><option value="all">전체</option></select></label><button id="refreshRequests" type="button">새로고침</button></div>
+      <p id="reviewMessage" role="status" aria-live="polite"></p>
+      <div id="requestsList" aria-live="polite">
         <p class="loading">불러오는 중...</p>
       </div>
+    </div>
     </div>
   </main>
 </Layout>
 
 <script>
-  import { supabase } from '../../lib/supabase';
+  import { membershipClient, connectionMessage, requireAdministrator, membershipStatus } from '../../lib/membership';
+  import type { MembershipStatus } from '../../lib/membership';
 
-  const EDGE_URL = import.meta.env.PUBLIC_SUPABASE_URL.replace('.supabase.co', '.supabase.co/functions/v1/approve-member');
+  const status = document.getElementById('adminStatus')!;
+  const content = document.getElementById('adminContent')!;
+  const container = document.getElementById('requestsList')!;
+  const badge = document.getElementById('pendingBadge')!;
+  const message = document.getElementById('reviewMessage')!;
+  const filter = document.getElementById('statusFilter') as HTMLSelectElement;
+  type JoinRequest = { id: string; name: string; email: string; message: string; status: MembershipStatus; created_at: string; reviewed_at: string | null };
+  let requests: JoinRequest[] = [];
+  let busy = false;
 
-  supabase.auth.getSession().then(({ data }) => {
-    if (!data.session) { window.location.href = '/login'; return; }
-    const emailEl = document.getElementById('userEmail');
-    if (emailEl) emailEl.textContent = data.session.user.email ?? '';
-    loadRequests(data.session.access_token);
-  });
-
-  document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/';
-  });
-
-  async function loadRequests(token: string) {
-    const container = document.getElementById('requestsList') as HTMLDivElement;
-    const badge = document.getElementById('pendingBadge') as HTMLSpanElement;
-
-    const { data, error } = await supabase
-      .from('join_requests')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error || !data || data.length === 0) {
-      container.innerHTML = '<p class="empty">신청 내역이 없습니다.</p>';
-      return;
-    }
-
-    const pending = data.filter((r: any) => r.status === 'pending');
-    if (pending.length > 0) {
-      badge.textContent = `대기 ${pending.length}건`;
-      badge.classList.remove('hidden');
-    }
-
-    container.innerHTML = data.map((r: any) => `
-      <div class="request-item ${r.status}">
-        <div class="request-info">
-          <div class="request-name">${r.name}</div>
-          <div class="request-email">${r.email}</div>
-          ${r.message ? `<div class="request-msg">"${r.message}"</div>` : ''}
-          <div class="request-date">${new Date(r.created_at).toLocaleDateString('ko-KR')}</div>
-        </div>
-        <div class="request-actions">
-          <span class="status-badge ${r.status}">${
-            r.status === 'pending' ? '대기중' :
-            r.status === 'approved' ? '승인됨' : '거절됨'
-          }</span>
-          ${r.status === 'pending' ? `
-            <button class="btn-approve" data-id="${r.id}" data-email="${r.email}" data-name="${r.name}">✓ 승인</button>
-            <button class="btn-reject" data-id="${r.id}">✕ 거절</button>
-          ` : ''}
-        </div>
-      </div>
-    `).join('');
-
-    container.querySelectorAll('.btn-approve').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id')!;
-        const email = btn.getAttribute('data-email')!;
-        const name = btn.getAttribute('data-name')!;
-        btn.textContent = '처리 중...';
-        (btn as HTMLButtonElement).disabled = true;
-
-        const { data: { session } } = await supabase.auth.getSession();
-        const res = await fetch(EDGE_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({ id, email, name }),
-        });
-
-        if (res.ok) {
-          alert(`${name}님께 초대 이메일을 발송했습니다.`);
-          loadRequests(session?.access_token ?? '');
-        } else {
-          const err = await res.json();
-          alert('오류: ' + (err.error || '알 수 없는 오류'));
-          btn.textContent = '✓ 승인';
-          (btn as HTMLButtonElement).disabled = false;
-        }
-      });
-    });
-
-    container.querySelectorAll('.btn-reject').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id')!;
-        if (!confirm('거절하시겠습니까?')) return;
-        await supabase.from('join_requests').update({ status: 'rejected' }).eq('id', id);
-        const { data: { session } } = await supabase.auth.getSession();
-        loadRequests(session?.access_token ?? '');
-      });
-    });
+  // User content is rendered with textContent, never HTML interpolation.
+  function text(tag: string, value: string, className: string) {
+    const element = document.createElement(tag);
+    element.textContent = value; element.className = className; return element;
   }
+  function render() {
+    const pending = requests.filter(r => r.status === 'pending').length;
+    badge.textContent = `대기 ${pending}건`; badge.classList.toggle('hidden', pending === 0);
+    container.replaceChildren();
+    const visible = requests.filter(r => filter.value === 'all' || r.status === filter.value);
+    if (!visible.length) { container.append(text('p', '해당 상태의 가입 신청이 없습니다.', 'empty')); return; }
+    for (const request of visible) {
+      const row = document.createElement('div'); row.className = `request-item ${request.status}`;
+      const info = document.createElement('div'); info.className = 'request-info';
+      info.append(text('div', request.name, 'request-name'), text('div', request.email, 'request-email'));
+      if (request.message) info.append(text('div', request.message, 'request-msg'));
+      info.append(text('div', `신청: ${new Date(request.created_at).toLocaleString('ko-KR')}`, 'request-date'));
+      if (request.reviewed_at) info.append(text('div', `처리: ${new Date(request.reviewed_at).toLocaleString('ko-KR')}`, 'request-date'));
+      const actions = document.createElement('div'); actions.className = 'request-actions';
+      actions.append(text('span', membershipStatus[request.status] ?? '상태 확인 필요', `status-badge ${request.status}`));
+      if (request.status === 'pending') {
+        for (const decision of ['approved', 'rejected'] as const) {
+          const button = document.createElement('button'); button.type = 'button';
+          button.className = decision === 'approved' ? 'btn-approve' : 'btn-reject';
+          button.textContent = decision === 'approved' ? '승인 완료' : '거절';
+          button.disabled = busy;
+          button.addEventListener('click', () => review(request, decision)); actions.append(button);
+        }
+      }
+      row.append(info, actions); container.append(row);
+    }
+  }
+  async function loadRequests() {
+    const client = await membershipClient();
+    if (!client) throw new Error(connectionMessage);
+    // RLS additionally restricts this list to designated administrators.
+    const { data, error } = await client.from('join_requests')
+      .select('id,name,email,message,status,created_at,reviewed_at').order('created_at', { ascending: false });
+    if (error) throw new Error('신청 목록을 불러오지 못했습니다. 연결 및 관리자 권한을 확인해 주세요.');
+    requests = data ?? []; render();
+  }
+  async function review(request: JoinRequest, decision: 'approved' | 'rejected') {
+    if (busy || !confirm(`${request.name}님의 가입 신청을 ${decision === 'approved' ? '승인' : '거절'}하시겠습니까?`)) return;
+    busy = true; render(); message.textContent = '처리 중...';
+    try {
+      const client = await membershipClient();
+      if (!client) throw new Error(connectionMessage);
+      const { error } = await client.rpc('review_join_request', { request_id: String(request.id), decision });
+      if (error) throw new Error(['42501','22023','40001','P0002'].includes(error.code) ? error.message : '처리하지 못했습니다. 목록을 새로고침한 뒤 다시 시도해 주세요.');
+      message.textContent = `${request.name}님 ${membershipStatus[decision]}.`;
+      await loadRequests();
+    } catch (error) { message.textContent = error instanceof Error ? error.message : '연결하지 못했습니다. 다시 시도해 주세요.'; }
+    finally { busy = false; render(); }
+  }
+  async function initialize() {
+    try {
+      const client = await membershipClient();
+      if (!client) { status.textContent = connectionMessage; return; }
+      if (!await requireAdministrator(client)) return;
+      const { data: { user } } = await client.auth.getUser();
+      document.getElementById('userEmail')!.textContent = user?.email ?? '';
+      status.hidden = true; content.hidden = false;
+      await loadRequests();
+      filter.addEventListener('change', render);
+      document.getElementById('refreshRequests')!.addEventListener('click', async () => {
+        if (busy) return;
+        try { await loadRequests(); message.textContent = '목록을 새로고침했습니다.'; }
+        catch { message.textContent = '목록을 새로고침하지 못했습니다. 다시 시도해 주세요.'; }
+      });
+      document.getElementById('logoutBtn')!.addEventListener('click', async () => {
+        const { error } = await client.auth.signOut();
+        if (error) { message.textContent = '로그아웃하지 못했습니다. 다시 시도해 주세요.'; return; }
+        window.location.replace('/');
+      });
+    } catch (error) { status.hidden = false; status.textContent = error instanceof Error ? error.message : '연결하지 못했습니다.'; }
+  }
+  initialize();
 </script>
 
-<style>
+<style is:global>
+  [hidden] {display:none !important}
+  .review-help {font-size:.9rem;color:#64748b;line-height:1.7;margin-bottom:1rem}
+  .review-tools {display:flex;gap:1rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap}
+  .review-tools select,.review-tools button {padding:.5rem;border:1px solid #cbd5e1;border-radius:6px;background:white}
+  #reviewMessage {margin:.8rem 0;color:#1a4fa0}
+  .request-msg {white-space:pre-wrap;overflow-wrap:anywhere}
   .admin-wrap { max-width: 960px; margin: 0 auto; padding: 3rem 2rem; }
   .admin-header {
     display: flex; justify-content: space-between; align-items: center;

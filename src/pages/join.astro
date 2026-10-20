@@ -6,26 +6,34 @@ import Layout from '../layouts/Layout.astro';
   <main class="join-wrap">
     <div class="join-box">
       <h1>✝ 해인교회 회원가입 신청</h1>
-      <p class="sub">신청 후 관리자 승인이 완료되면 이메일로 안내드립니다.</p>
+      <p class="sub">회원가입 · 이메일 인증 → 관리자 승인 → 회원 이용</p>
 
-      <div id="msg" class="msg hidden"></div>
+      <div id="msg" class="msg hidden" role="status" aria-live="polite"></div>
       <div id="successBox" class="success-box hidden">
         <div class="success-icon">✓</div>
         <h2>신청이 완료되었습니다!</h2>
-        <p>관리자 승인 후 이메일로 안내드리겠습니다.<br />감사합니다.</p>
-        <a href="/" class="home-btn">홈으로 돌아가기</a>
+        <p>이메일 인증 안내를 확인해 주세요.<br />로그인 후 ‘내 가입 상태’에서 승인 결과를 확인할 수 있습니다.</p>
+        <a href="/login/" class="home-btn">로그인하러 가기</a>
       </div>
 
       <form id="joinForm">
         <label>이름
-          <input type="text" id="name" placeholder="홍길동" required />
+          <input type="text" id="name" placeholder="홍길동" autocomplete="name" maxlength="80" required />
         </label>
         <label>이메일
-          <input type="email" id="email" placeholder="example@email.com" required />
+          <input type="email" id="email" placeholder="example@email.com" autocomplete="email" maxlength="254" required />
+        </label>
+        <label>비밀번호
+          <input type="password" id="password" autocomplete="new-password" minlength="12" maxlength="128" placeholder="12자 이상" required />
+        </label>
+        <label>비밀번호 확인
+          <input type="password" id="passwordConfirm" autocomplete="new-password" minlength="12" maxlength="128" required />
         </label>
         <label>가입 인사 <span class="optional">(선택)</span>
-          <textarea id="message" placeholder="간단한 자기소개나 가입 이유를 적어주세요" rows="4"></textarea>
+          <textarea id="message" placeholder="간단한 가입 인사만 적어 주세요. 주민등록번호·주소·건강정보 등은 적지 마세요." maxlength="2000" rows="4"></textarea>
         </label>
+        <p class="privacy-note">이름·이메일은 가입 심사와 회원 관리에 사용되며 본인과 담당 관리자만 조회합니다. 가입 인사는 선택 사항입니다. 비밀번호는 Supabase Auth가 관리합니다.</p>
+        <label class="consent"><input type="checkbox" id="privacyConsent" required /> 가입 심사를 위한 이름·이메일 수집 및 이용에 동의합니다. 동의하지 않으면 가입을 신청할 수 없습니다.</label>
         <button type="submit" id="submitBtn">가입 신청하기</button>
       </form>
 
@@ -35,15 +43,25 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  import { supabase } from '../lib/supabase';
+  import { membershipClient, connectionMessage } from '../lib/membership';
 
   const form = document.getElementById('joinForm') as HTMLFormElement;
   const msg = document.getElementById('msg') as HTMLDivElement;
   const successBox = document.getElementById('successBox') as HTMLDivElement;
   const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
 
+  const clientReady = membershipClient();
+  clientReady.then(client => {
+    if (!client) { msg.textContent = connectionMessage; msg.className = 'msg error'; submitBtn.disabled = true; }
+  });
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const password = document.querySelector<HTMLInputElement>('#password')!;
+    const confirmation = document.querySelector<HTMLInputElement>('#passwordConfirm')!;
+    if (password.value !== confirmation.value) {
+      msg.textContent = '비밀번호와 비밀번호 확인이 일치하지 않습니다.';
+      msg.className = 'msg error'; confirmation.focus(); return;
+    }
     submitBtn.textContent = '신청 중...';
     submitBtn.disabled = true;
 
@@ -51,20 +69,24 @@ import Layout from '../layouts/Layout.astro';
     const email = (document.getElementById('email') as HTMLInputElement).value;
     const message = (document.getElementById('message') as HTMLTextAreaElement).value;
 
-    const { error } = await supabase.from('join_requests').insert({ name, email, message });
-
-    if (error) {
-      if (error.code === '23505') {
-        msg.textContent = '이미 신청된 이메일입니다.';
-      } else {
-        msg.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
-      }
+    try {
+      const supabase = await clientReady;
+      if (!supabase) throw new Error(connectionMessage);
+      const { error } = await supabase.auth.signUp({
+        email: email.trim(), password: password.value,
+        options: { emailRedirectTo: `${location.origin}/membership/`, data: {
+          name: name.trim(), message: message.trim(), membership_consent: true,
+        } },
+      });
+      if (error) throw new Error(error.code === 'weak_password' ? '더 안전한 비밀번호를 사용해 주세요.' : '신청을 완료하지 못했습니다. 이메일 인증 여부와 기존 가입 여부를 확인한 뒤 다시 시도해 주세요.');
+      form.reset(); msg.className = 'msg hidden';
+      form.classList.add('hidden'); successBox.classList.remove('hidden');
+    } catch (error) {
+      msg.textContent = error instanceof Error ? error.message : '연결하지 못했습니다. 잠시 후 다시 시도해 주세요.';
       msg.className = 'msg error';
+    } finally {
       submitBtn.textContent = '가입 신청하기';
       submitBtn.disabled = false;
-    } else {
-      form.classList.add('hidden');
-      successBox.classList.remove('hidden');
     }
   });
 </script>
@@ -105,6 +127,9 @@ import Layout from '../layouts/Layout.astro';
   .login-link { text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: #888; }
   .login-link a { color: #1a4fa0; }
   .hidden { display: none !important; }
+  .privacy-note {font-size:.8rem;color:#64748b;line-height:1.7;margin:1rem 0}
+  .consent {font-size:.8rem;line-height:1.6;font-weight:400}
+  .consent input {display:inline;width:auto;margin-right:.4rem}
 
   /* 성공 화면 */
   .success-box { text-align: center; padding: 2rem 0; }

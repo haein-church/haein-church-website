@@ -10,7 +10,7 @@ import Layout from '../../layouts/Layout.astro';
         <h1>소식 작성</h1>
       </div>
       <div id="msg" class="msg hidden"></div>
-      <form id="newsForm">
+      <form inert id="newsForm">
         <label>제목
           <input type="text" id="title" placeholder="소식 제목을 입력하세요" required />
         </label>
@@ -30,14 +30,17 @@ import Layout from '../../layouts/Layout.astro';
 </Layout>
 
 <script>
-  import { supabase } from '../../lib/supabase';
+  import { membershipClient, connectionMessage, requireAdministrator } from '../../lib/membership';
+  async function initialize() {
+    const supabase = await membershipClient();
+    if (!supabase) { document.getElementById('msg')!.textContent = connectionMessage; document.getElementById('msg')!.className = 'msg error'; return; }
+    if (!await requireAdministrator(supabase)) return;
+    document.querySelector('form')?.removeAttribute('inert');
 
   const msg = document.getElementById('msg') as HTMLDivElement;
   const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
 
-  supabase.auth.getSession().then(({ data }) => {
-    if (!data.session) window.location.href = '/login';
-  });
+
 
   document.getElementById('newsForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -79,6 +82,11 @@ import Layout from '../../layouts/Layout.astro';
       msg.className = 'msg success';
       setTimeout(() => window.location.href = '/news', 1500);
     }
+  });
+  }
+  initialize().catch(() => {
+    document.getElementById('msg')!.textContent = '관리자 권한을 확인하지 못했습니다. 다시 로그인해 주세요.';
+    document.getElementById('msg')!.className = 'msg error';
   });
 </script>
 
