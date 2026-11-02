@@ -1,0 +1,10 @@
+---
+import BoardList from './BoardList.astro';
+import { postsFor, isBoardArchived, boards } from '../lib/onmam';
+interface Props { id: string; title: string; limit?: number }
+const {id, title, limit=4} = Astro.props;
+const items = postsFor(id).slice(0,limit);
+const name = boards.find(board=>board.id===id)?.name ?? title;
+---
+<section class="preview"><div class="preview-heading"><h2>{name}</h2><a href={`/boards/${id}/`} aria-label={`${name} 전체보기`}>전체보기 →</a></div>{isBoardArchived(id)||items.length>0 ? <BoardList items={items}/> : <div class="pending"><p>기존 홈페이지의 자료를 정리하고 있습니다.</p><a href={`/boards/${id}/`}>{name} 안내 보기 →</a></div>}</section>
+<style>.preview{min-width:0}.preview-heading{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.2rem}.preview h2{font-size:1.4rem;letter-spacing:-.04em;color:#193e65}.preview-heading a,.pending a{font-size:.82rem;color:#315f89}.pending{border-top:2px solid #1a4fa0;background:#f7f9fc;min-height:160px;display:flex;flex-direction:column;justify-content:center;gap:1rem;padding:1.5rem;color:#607086;font-size:.9rem}</style>

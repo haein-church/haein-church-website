@@ -20,3 +20,46 @@ Astro + Supabase 기반의 해인교회 홈페이지 소스입니다. 작업은 
 비밀번호는 Supabase Auth가 관리합니다. 이름·이메일·가입 인사는 RLS와 관리자 전용 RPC로 보호하며 실제 회원 데이터, 원본 백업, 환경변수, 비밀 키는 GitHub에 저장하지 않습니다. 관리자 권한은 회원의 입력값이나 최초 가입 순서로 부여하지 않습니다.
 
 검색 차단을 위한 robots/noindex를 유지합니다. 로컬 데이터와 첨부파일은 저장소에 포함되지 않으므로 새 checkout에서는 해당 자료를 준비해야 전체 게시판을 빌드할 수 있습니다. 현재 개발 단계의 소스 push는 인터넷 홈페이지 배포와 별개입니다.
+
+## 전체 메뉴 관리와 전체 자료 복원
+
+원래 온맘닷컴의 상위 메뉴 8개와 하위 메뉴 42개(게시판 35개·안내 페이지 7개)는
+`src/data/site-menu.json`에서 관리합니다. 홈, 전체 메뉴, 분야별 안내, 게시판에서 같은
+메뉴 정보를 사용하며 원본 게시판·글 ID는 유지합니다. 기존 관리자 회원 승인 코드는 보존합니다.
+
+`pnpm dev`로 백그라운드 개발 서버를 시작한 뒤 `http://127.0.0.1:4321/admin/site/`를
+열면 메뉴 이름·설명·순서·표시 변경과 메뉴 추가, 모든 게시판의 글 작성·수정·숨김,
+안내 페이지 편집, 사진·첨부 추가, 원본 복원을 사용할 수 있습니다.
+이 기능은 **이 컴퓨터의 개발 서버 전용**입니다. 빌드 결과나 Cloudflare에 파일 쓰기
+API가 포함되지 않으며, 공개 운영 관리자 저장소는 향후 지정 Supabase의 관리자 권한과
+연결한 뒤 별도로 검증해야 합니다. 현재 원격 DB가 연결됐거나 온라인 편집이 완료됐다는 뜻이 아닙니다.
+
+본문은 텍스트로 편집합니다. 제목·날짜만 변경하면 원래 본문 서식을 유지하고,
+본문을 바꿔도 기존 사진·음성·영상·첨부는 보존합니다. 자료 수정본은 Git에서 제외한
+`src/data/onmam-edits.json`에, 저장 전 상태는 `migration/onmam/local-history/`에,
+추가 첨부 원본은 `migration/onmam/local-uploads/`에 보관합니다.
+메뉴 숨김은 탐색 메뉴의 표시 옵션이며 접근 권한이나 비밀글 기능과는 별개입니다.
+
+전체 자료는 기존 백업과 분리한 스냅샷으로 수집합니다. 아래 Python 명령은 이 컴퓨터의
+번들 런타임으로 실행합니다. 원격 변경·로그인 우회·업로드는 수행하지 않습니다.
+
+```text
+python scripts/archive_onmam.py --all-boards --output migration/onmam/snapshots/2026-11-02 --reuse-assets migration/onmam
+node scripts/audit_onmam_backup.mjs --archive migration/onmam/snapshots/2026-11-02
+python scripts/prepare_onmam_site.py --archive migration/onmam/snapshots/2026-11-02
+pnpm build
+python scripts/check_local_site.py
+pnpm test:cms
+```
+
+`--reuse-assets`는 해시가 일치하는 파일만 재사용합니다. 목록과 본문은 새 스냅샷에서
+다시 읽으며, 중단한 스냅샷은 동일 명령으로 이어갈 수 있습니다. `unavailable-files.csv`는
+원본 서버에서 내려받지 못한 자료 목록입니다. 외부 영상 주소 보존은 영상 원본 확보와
+구분합니다. 게시글·페이지의 수집 오류가 남으면 사이트 자료 준비를 중단합니다.
+
+원본 CI는 `migration/onmam/branding/`의 JPEG와 SHA-256 기록으로 보존하고
+`src/data/branding.json`에서 연결합니다. 220×63 원본은 재제작·크롭·색상 변경 없이
+상단·하단 로고로 사용합니다. 새 checkout에서는 원본 백업과 함께 로고 파일도 준비해야 합니다.
+
+로컬 서버 관리: `pnpm astro dev status`, `pnpm astro dev logs`, `pnpm astro dev stop`.
+`START-LOCAL.cmd`의 빌드 결과 미리보기에는 편집 API가 없으므로 편집 시에는 `pnpm dev`를 사용합니다.

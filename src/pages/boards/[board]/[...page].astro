@@ -1,7 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import BoardList from '../../../components/BoardList.astro';
-import { boards, groups, postsFor } from '../../../lib/onmam';
+import { boards, groups, postsFor, menuUrl, isBoardArchived } from '../../../lib/onmam';
 export function getStaticPaths(){
  return boards.flatMap(board=>{
   const items=postsFor(board.id), total=Math.max(1,Math.ceil(items.length/15));
@@ -9,18 +9,18 @@ export function getStaticPaths(){
  });
 }
 const {board,items,current,total,count}=Astro.props;
-const siblings=groups.find(g=>g.name===board.group)?.children??[];
+const siblings=groups.find(g=>g.name===board.group)?.children.filter(item=>item.visible!==false)??[];
 const pageUrl=(n:number)=>`/boards/${board.id}/${n===1?'':n+'/'}`;
 ---
 <Layout title={`${board.name} - 해인교회`}>
  <div class="page-heading"><p>{board.group}</p><h1>{board.name}</h1></div>
  <main class="board-wrap">
-  <nav class="board-nav" aria-label={`${board.group} 게시판`}>{siblings.map(item=><a href={`/boards/${item.id}/`} aria-current={item.id===board.id?'page':undefined}>{item.name}</a>)}</nav>
-  <div class="board-meta"><p>전체 <strong>{count}</strong>개의 글</p><a href="/boards/">전체 게시판 보기 →</a></div>
-  <BoardList items={items}/>
+  <nav class="board-nav" aria-label={`${board.group} 게시판`}>{siblings.map(item=><a href={menuUrl(item)} aria-current={item.id===board.id?'page':undefined}>{item.name}</a>)}</nav>
+  {isBoardArchived(board.id)||count>0||board.id.startsWith('local-') ? <><div class="board-meta"><p>보관된 글 <strong>{count}</strong>개</p><a href="/boards/">전체 게시판 보기 →</a></div><BoardList items={items}/></> : <section class="archive-pending"><h2>기존 홈페이지의 자료를 정리하고 있습니다.</h2><p>이 게시판의 글은 온맘닷컴 홈페이지에서 확인하실 수 있습니다.</p><a href={board.url} target="_blank" rel="noopener noreferrer">기존 {board.name} 게시판 보기 ↗</a></section>}
   {total>1&&<nav class="pagination" aria-label="게시판 페이지">{current>1&&<a href={pageUrl(current-1)}>← 이전</a>}{Array.from({length:total},(_,i)=>i+1).filter(n=>n===1||n===total||Math.abs(n-current)<=2).map((n,i,list)=><>{i>0&&n-list[i-1]>1&&<span>…</span>}<a href={pageUrl(n)} aria-current={n===current?'page':undefined}>{n}</a></>)}{current<total&&<a href={pageUrl(current+1)}>다음 →</a>}</nav>}
  </main>
 </Layout>
 <style>
+.archive-pending{padding:2rem;background:#f5f7fa;border:1px solid #dce5ee;border-radius:8px;line-height:1.9}.archive-pending h2{font-size:1.15rem;color:#214c70}.archive-pending p{font-size:.9rem;color:#60738a;margin:.8rem 0}.archive-pending a{color:#1a4fa0;font-size:.9rem}
 .page-heading{background:#f0f5fc;padding:3rem max(1.5rem,calc((100% - 1040px)/2));border-bottom:1px solid #e1e8f4}.page-heading p{color:#587399;font-size:.9rem;margin-bottom:.5rem}.page-heading h1{color:#163c73;font-size:2.2rem}.board-wrap{max-width:1088px;margin:0 auto;padding:2rem 1.5rem 4rem}.board-nav{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:2.5rem}.board-nav a{padding:.55rem .9rem;border:1px solid #d9e2ee;border-radius:5px;font-size:.9rem}.board-nav a[aria-current]{background:#1a4fa0;border-color:#1a4fa0;color:white}.board-meta{display:flex;justify-content:space-between;margin:1rem 0;color:#667085;font-size:.9rem}.board-meta a{color:#1a4fa0}.pagination{display:flex;justify-content:center;flex-wrap:wrap;gap:.5rem;margin-top:2rem}.pagination a,.pagination span{padding:.5rem .8rem;border-radius:4px}.pagination a{border:1px solid #dbe3ed}.pagination a[aria-current]{background:#1a4fa0;color:white}
 </style>

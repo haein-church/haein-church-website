@@ -1,0 +1,59 @@
+type Item={id:string;kind:'board'|'page';name:string;group:string;url:string;visible?:boolean};
+type Group={name:string;slug:string;description:string;visible?:boolean;children:Item[]};
+type Summary={key:string;kind:'page'|'post';id:string;boardId:string|null;title:string;date:string|null;hidden?:boolean};
+type RecordData=Summary & {html?:string;bodyText?:string;replaceBody?:boolean;files?:FileItem[];addedFiles?:FileItem[]};
+type FileItem={name:string;url:string|null};
+type State={menus:{groups:Group[]};records:Summary[];revision:string};
+const el=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
+const status=el('cms-status');
+let state:State, selected:RecordData|null=null, addedFiles:FileItem[]=[],dirty=false,busy=false,initialBody='';
+function node<K extends keyof HTMLElementTagNameMap>(tag:K,text?:string){const value=document.createElement(tag);if(text!==undefined)value.textContent=text;return value;}
+function button(text:string,action:()=>void){const value=node('button',text);value.type='button';value.addEventListener('click',action);return value;}
+function message(value:string){status.textContent=value;}
+async function request(path:string,data?:unknown){
+ const response=await fetch('/__church-cms/'+path,{cache:'no-store',...(data?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data as object,revision:state.revision})}:{})});
+ if(!response.headers.get('content-type')?.includes('application/json'))throw new Error('로컬 관리 서버에서만 사용할 수 있습니다. 개발 서버로 실행해 주세요.');
+ const result=await response.json();if(!response.ok)throw new Error(result.error??'요청을 처리하지 못했습니다.');return result;
+}
+async function operation(action:()=>Promise<void>){if(busy)return;busy=true;document.querySelectorAll<HTMLButtonElement>('.cms button').forEach(value=>value.disabled=true);try{await action();}catch(error){message(error instanceof Error?error.message:'요청을 처리하지 못했습니다.');}finally{busy=false;document.querySelectorAll<HTMLButtonElement>('.cms button').forEach(value=>value.disabled=false);}}
+function field(label:string,value:string,onChange:(value:string)=>void,maxLength=60){const wrap=node('label',label);const input=node('input');input.value=value;input.maxLength=maxLength;input.addEventListener('input',()=>{onChange(input.value);dirty=true;});wrap.append(input);return wrap;}
+function visibility(value:{visible?:boolean},label:string){const wrap=node('label');wrap.className='check';const input=node('input');input.type='checkbox';input.checked=value.visible!==false;input.addEventListener('change',()=>{value.visible=input.checked;dirty=true;});wrap.append(input,document.createTextNode(label));return wrap;}
+function move<T>(list:T[],index:number,delta:number){const target=index+delta;if(target<0||target>=list.length)return;[list[index],list[target]]=[list[target],list[index]];dirty=true;renderMenus();}
+function order<T>(list:T[],index:number,label:string){const wrap=node('div');wrap.className='order-buttons';for(const [text,delta]of [['↑',-1],['↓',1]]as const){const control=button(text,()=>move(list,index,delta));control.setAttribute('aria-label',label+(delta<0?' 위로':' 아래로'));control.disabled=index+delta<0||index+delta>=list.length;wrap.append(control);}return wrap;}
+function renderMenus(){const tree=el('menu-tree');tree.replaceChildren();state.menus.groups.forEach((group,index)=>{
+ const section=node('section');section.className='menu-group';const header=node('div');header.className='group-fields';header.append(field('상위 메뉴 이름',group.name,value=>group.name=value,40),field('소개 문구',group.description,value=>group.description=value,500),order(state.menus.groups,index,group.name));section.append(header,visibility(group,'상위 메뉴 표시'));
+ group.children.forEach((item,itemIndex)=>{const row=node('div');row.className='menu-row';row.append(field('하위 메뉴 이름',item.name,value=>item.name=value),node('small',(item.kind==='page'?'안내 페이지':'게시판')+' · '+item.id),visibility(item,'메뉴 표시'),order(group.children,itemIndex,item.name));section.append(row);});
+ const tools=node('div');tools.className='toolbar';for(const [text,kind]of [['게시판 추가','board'],['안내 페이지 추가','page']]as const)tools.append(button(text,()=>{group.children.push({id:'local-'+crypto.randomUUID(),name:kind==='board'?'새 게시판':'새 안내 페이지',kind,group:group.name,url:'',visible:true});dirty=true;renderMenus();}));section.append(tools);tree.append(section);
+});}
+function menuItems(){return state.menus.groups.flatMap(group=>group.children);}
+function activeMenu(){const [kind,id]=el<HTMLSelectElement>('content-menu').value.split(':');return menuItems().find(item=>item.kind===kind&&item.id===id);}
+function renderMenuSelect(){const select=el<HTMLSelectElement>('content-menu');const previous=select.value;select.replaceChildren();for(const group of state.menus.groups){const optgroup=node('optgroup');optgroup.label=group.name;for(const item of group.children){const option=node('option',item.name);option.value=item.kind+':'+item.id;optgroup.append(option);}select.append(optgroup);}if([...select.options].some(option=>option.value===previous))select.value=previous;renderContentList();}
+function renderContentList(){const item=activeMenu();if(!item)return;const q=el<HTMLInputElement>('content-search').value.trim().toLocaleLowerCase();const records=state.records.filter(record=>(item.kind==='page'?record.kind==='page'&&record.id===item.id:record.kind==='post'&&record.boardId===item.id)&&record.title.toLocaleLowerCase().includes(q)).sort((a,b)=>(b.date??'').localeCompare(a.date??''));
+ const list=el('content-list');list.replaceChildren();el('content-count').textContent=`${records.length}개의 자료`;el('new-post').textContent=item.kind==='page'?'페이지 작성':'새 글 작성';
+ for(const record of records){const control=button(`${record.hidden?'[숨김] ':''}${record.title}${record.date?' · '+record.date:''}`,()=>operation(async()=>{if(dirty&&!confirm('저장하지 않은 변경사항이 있습니다. 다른 글을 여시겠습니까?'))return;const result=await request('record?key='+encodeURIComponent(record.key));state.revision=result.revision;openRecord(result.record);dirty=false;}));if(selected?.key===record.key)control.setAttribute('aria-current','true');list.append(control);}
+ if(!records.length)list.append(node('p',item.kind==='page'?'아직 작성된 안내 페이지가 없습니다.':'보관된 글이 없습니다. 자료 수집 상태를 확인하거나 새 글을 작성하세요.'));
+}
+function renderFiles(){const list=el('record-files');list.replaceChildren();for(const file of selected?.files??[])list.append(node('li','기존 첨부 · '+file.name));for(const file of addedFiles)list.append(node('li','추가 첨부 · '+file.name));}
+function openRecord(record:RecordData){selected=record;addedFiles=[...record.addedFiles??[]];el('content-form').hidden=false;el<HTMLInputElement>('record-key').value=record.key;el<HTMLInputElement>('record-title').value=record.title;el<HTMLInputElement>('record-date').value=record.date?.slice(0,10)??'';
+ initialBody=record.bodyText??new DOMParser().parseFromString((record.html??'').replace(/<br\s*\/?\s*>|<\/(?:p|h[1-6]|li|tr)>/gi,'\n'),'text/html').body.textContent??'';
+ el<HTMLTextAreaElement>('record-body').value=initialBody;
+ const hidden=el<HTMLInputElement>('record-hidden');hidden.checked=record.hidden===true;hidden.disabled=record.kind==='page';const preview=el<HTMLAnchorElement>('record-preview');preview.href=record.kind==='page'?`/church/${record.id}/`:`/posts/${record.boardId}/${record.id}/`;el('editor-heading').textContent=record.kind==='page'?'안내 페이지 편집':'게시글 편집';el<HTMLInputElement>('record-file').value='';renderFiles();renderContentList();
+}
+async function reload(){const next=await request('state');state=next;renderMenus();renderMenuSelect();}
+function switchPanel(menu:boolean){el('menus-panel').hidden=!menu;el('content-panel').hidden=menu;el('tab-menus').setAttribute('aria-pressed',String(menu));el('tab-content').setAttribute('aria-pressed',String(!menu));}
+async function initialize(){
+ if(!import.meta.env.DEV||location.hostname!=='127.0.0.1'){message('이 관리 화면은 현재 이 컴퓨터의 로컬 개발 서버에서 사용할 수 있습니다. 온라인 관리자 연결은 공개 전 별도로 검증합니다.');return;}
+ try{await reload();el('cms-workspace').hidden=false;message(`관리 준비 완료 · 상위 메뉴 ${state.menus.groups.length}개 · 하위 메뉴 ${menuItems().length}개 · 자료 ${state.records.length}건`);}catch(error){message(error instanceof Error?error.message:'로컬 서버에 연결하지 못했습니다.');return;}
+ el('tab-menus').addEventListener('click',()=>switchPanel(true));el('tab-content').addEventListener('click',()=>switchPanel(false));
+ el('add-group').addEventListener('click',()=>{state.menus.groups.push({name:'새 상위 메뉴',slug:'local-'+crypto.randomUUID(),description:'',children:[],visible:true});dirty=true;renderMenus();});
+ el('save-menus').addEventListener('click',()=>operation(async()=>{dirty=false;try{const result=await request('menus',{menus:state.menus});state.revision=result.revision;renderMenuSelect();message('메뉴를 저장했습니다. 홈페이지에서 결과를 확인하세요.');}catch(error){dirty=true;throw error;}}));
+ el('content-menu').addEventListener('change',renderContentList);el('content-search').addEventListener('input',renderContentList);
+ el('refresh-content').addEventListener('click',()=>operation(async()=>{if(dirty&&!confirm('저장하지 않은 내용을 버리고 목록을 새로고침할까요?'))return;dirty=false;await reload();message('목록을 새로고침했습니다.');}));
+ el('new-post').addEventListener('click',()=>{if(dirty&&!confirm('저장하지 않은 내용을 버리고 새 자료를 작성할까요?'))return;const item=activeMenu();if(!item)return;if(item.kind==='page'&&state.records.some(record=>record.kind==='page'&&record.id===item.id)){message('이미 작성된 페이지가 있습니다. 목록에서 선택해 수정해 주세요.');return;}const id=item.kind==='page'?item.id:'local-'+crypto.randomUUID();openRecord({key:item.kind==='page'?'page-'+id:`post-${item.id}-${id}`,id,boardId:item.kind==='page'?null:item.id,kind:item.kind==='page'?'page':'post',title:item.kind==='page'?item.name:'',date:new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date()),bodyText:'',addedFiles:[]});dirty=true;});
+ for(const id of ['record-title','record-date','record-body','record-hidden'])el(id).addEventListener('input',()=>dirty=true);
+ el('record-file').addEventListener('change',()=>operation(async()=>{const input=el<HTMLInputElement>('record-file');for(const file of input.files??[]){if(file.size>50*1024*1024)throw new Error(file.name+' 파일은 50MB를 초과합니다.');message(file.name+' 업로드 중...');const base64=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=()=>reject(new Error('파일을 읽지 못했습니다.'));reader.readAsDataURL(file);});const result=await request('upload',{name:file.name,base64});addedFiles.push(result.file);dirty=true;renderFiles();}input.value='';message('첨부를 준비했습니다. 자료 저장을 눌러 글에 연결해 주세요.');}));
+ el('content-form').addEventListener('submit',event=>{event.preventDefault();operation(async()=>{if(!selected)return;const bodyText=el<HTMLTextAreaElement>('record-body').value;const record={...selected,title:el<HTMLInputElement>('record-title').value,date:el<HTMLInputElement>('record-date').value,bodyText,replaceBody:selected.replaceBody===true||bodyText!==initialBody,hidden:el<HTMLInputElement>('record-hidden').checked,addedFiles};dirty=false;try{const result=await request('record',{record});state.revision=result.revision;await reload();message('자료를 저장했습니다. 홈페이지에서 확인할 수 있습니다.');}catch(error){dirty=true;throw error;}});});
+ el('restore-record').addEventListener('click',()=>operation(async()=>{if(!selected||!confirm('수정 전의 원본으로 복원할까요? 현재 수정본은 저장 이력에 보관됩니다.'))return;dirty=false;const result=await request('restore',{key:selected.key});state.revision=result.revision;selected=null;el('content-form').hidden=true;await reload();message('원본 상태로 복원했습니다.');}));
+ window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
+}
+initialize();

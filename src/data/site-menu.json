@@ -1,0 +1,354 @@
+{
+  "groups": [
+    {
+      "name": "해인교회소개",
+      "children": [
+        {
+          "name": "교회소개",
+          "kind": "page",
+          "id": "2",
+          "url": "https://haein-church.onmam.com/bbs/viewPage/2",
+          "group": "해인교회소개"
+        },
+        {
+          "name": "인사말",
+          "kind": "page",
+          "id": "3",
+          "url": "https://haein-church.onmam.com/bbs/viewPage/3",
+          "group": "해인교회소개"
+        },
+        {
+          "name": "비전",
+          "kind": "page",
+          "id": "4",
+          "url": "https://haein-church.onmam.com/bbs/viewPage/4",
+          "group": "해인교회소개"
+        },
+        {
+          "name": "연혁",
+          "kind": "page",
+          "id": "5",
+          "url": "https://haein-church.onmam.com/bbs/viewPage/5",
+          "group": "해인교회소개"
+        },
+        {
+          "name": "섬기는 사람들",
+          "kind": "page",
+          "id": "6",
+          "url": "https://haein-church.onmam.com/bbs/viewPage/6",
+          "group": "해인교회소개"
+        },
+        {
+          "name": "예배안내",
+          "kind": "page",
+          "id": "7",
+          "url": "https://haein-church.onmam.com/bbs/viewPage/7",
+          "group": "해인교회소개"
+        },
+        {
+          "name": "찾아오시는 길",
+          "kind": "page",
+          "id": "8",
+          "url": "https://haein-church.onmam.com/bbs/viewPage/8",
+          "group": "해인교회소개"
+        }
+      ],
+      "slug": "church",
+      "description": "하나님을 사랑하고 이웃을 섬기는 공동체를 소개합니다."
+    },
+    {
+      "name": "교회소식",
+      "children": [
+        {
+          "id": "29",
+          "name": "사진·동영상",
+          "kind": "board",
+          "group": "교회소식",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/29"
+        },
+        {
+          "id": "55",
+          "name": "교회소식",
+          "kind": "board",
+          "group": "교회소식",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/55"
+        },
+        {
+          "name": "주보",
+          "kind": "board",
+          "id": "51",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/51",
+          "group": "교회소식"
+        },
+        {
+          "id": "13",
+          "name": "주일설교 BMP",
+          "kind": "board",
+          "group": "교회소식",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/13"
+        }
+      ],
+      "slug": "news",
+      "description": "교회의 일상과 말씀, 함께 나누는 소식을 만나세요."
+    },
+    {
+      "name": "찬양",
+      "children": [
+        {
+          "name": "성가대",
+          "kind": "board",
+          "id": "38",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/38",
+          "group": "찬양"
+        },
+        {
+          "name": "우리들의 찬양",
+          "kind": "board",
+          "id": "61",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/61",
+          "group": "찬양"
+        }
+      ],
+      "slug": "praise",
+      "description": "함께 부르는 찬양과 예배의 기록입니다."
+    },
+    {
+      "name": "교육/훈련",
+      "children": [
+        {
+          "name": "새가족반",
+          "kind": "board",
+          "id": "19",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/19",
+          "group": "교육/훈련"
+        },
+        {
+          "name": "제자훈련",
+          "kind": "board",
+          "id": "20",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/20",
+          "group": "교육/훈련"
+        },
+        {
+          "name": "사역훈련",
+          "kind": "board",
+          "id": "21",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/21",
+          "group": "교육/훈련"
+        },
+        {
+          "name": "수련회동영상",
+          "kind": "board",
+          "id": "53",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/53",
+          "group": "교육/훈련"
+        },
+        {
+          "name": "성경공부기초반",
+          "kind": "board",
+          "id": "60",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/60",
+          "group": "교육/훈련"
+        }
+      ],
+      "slug": "training",
+      "description": "말씀을 배우고 삶에서 실천하는 신앙의 여정입니다."
+    },
+    {
+      "name": "사랑방",
+      "children": [
+        {
+          "name": "기쁨 사랑방",
+          "kind": "board",
+          "id": "40",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/40",
+          "group": "사랑방"
+        },
+        {
+          "name": "평화 사랑방",
+          "kind": "board",
+          "id": "41",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/41",
+          "group": "사랑방"
+        },
+        {
+          "name": "인내 사랑방",
+          "kind": "board",
+          "id": "42",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/42",
+          "group": "사랑방"
+        },
+        {
+          "name": "자비 사랑방",
+          "kind": "board",
+          "id": "43",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/43",
+          "group": "사랑방"
+        },
+        {
+          "name": "양선 사랑방",
+          "kind": "board",
+          "id": "44",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/44",
+          "group": "사랑방"
+        },
+        {
+          "name": "온유 사랑방",
+          "kind": "board",
+          "id": "46",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/46",
+          "group": "사랑방"
+        },
+        {
+          "name": "솔라피데 사랑방",
+          "kind": "board",
+          "id": "47",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/47",
+          "group": "사랑방"
+        },
+        {
+          "name": "한나 사랑방",
+          "kind": "board",
+          "id": "48",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/48",
+          "group": "사랑방"
+        },
+        {
+          "name": "충성 사랑방",
+          "kind": "board",
+          "id": "62",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/62",
+          "group": "사랑방"
+        },
+        {
+          "name": "절제 사랑방",
+          "kind": "board",
+          "id": "63",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/63",
+          "group": "사랑방"
+        }
+      ],
+      "slug": "groups",
+      "description": "서로의 삶을 돌보고 믿음을 나누는 사랑방입니다."
+    },
+    {
+      "name": "부서소개",
+      "children": [
+        {
+          "name": "어린이부",
+          "kind": "board",
+          "id": "25",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/25",
+          "group": "부서소개"
+        },
+        {
+          "name": "청소년부",
+          "kind": "board",
+          "id": "26",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/26",
+          "group": "부서소개"
+        },
+        {
+          "name": "청년부",
+          "kind": "board",
+          "id": "27",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/27",
+          "group": "부서소개"
+        },
+        {
+          "name": "여신도회",
+          "kind": "board",
+          "id": "49",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/49",
+          "group": "부서소개"
+        },
+        {
+          "name": "남신도회",
+          "kind": "board",
+          "id": "50",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/50",
+          "group": "부서소개"
+        }
+      ],
+      "slug": "departments",
+      "description": "어린이부터 어른까지 함께 자라는 공동체입니다."
+    },
+    {
+      "name": "선교사역",
+      "children": [
+        {
+          "name": "사회복지선교사역",
+          "kind": "board",
+          "id": "57",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/57",
+          "group": "선교사역"
+        },
+        {
+          "name": "방송보도자료",
+          "kind": "board",
+          "id": "35",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/35",
+          "group": "선교사역"
+        },
+        {
+          "name": "언론보도자료",
+          "kind": "board",
+          "id": "58",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/58",
+          "group": "선교사역"
+        },
+        {
+          "name": "해외·다문화선교사역",
+          "kind": "board",
+          "id": "64",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/64",
+          "group": "선교사역"
+        }
+      ],
+      "slug": "mission",
+      "description": "이웃과 함께 하나님 나라를 가꾸어 갑니다."
+    },
+    {
+      "name": "커뮤니티",
+      "children": [
+        {
+          "name": "FAQ",
+          "kind": "board",
+          "id": "30",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/30",
+          "group": "커뮤니티"
+        },
+        {
+          "name": "갤러리",
+          "kind": "board",
+          "id": "31",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/31",
+          "group": "커뮤니티"
+        },
+        {
+          "name": "자유게시판",
+          "kind": "board",
+          "id": "32",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/32",
+          "group": "커뮤니티"
+        },
+        {
+          "name": "기도요청",
+          "kind": "board",
+          "id": "33",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/33",
+          "group": "커뮤니티"
+        },
+        {
+          "name": "한 줄 대화",
+          "kind": "board",
+          "id": "34",
+          "url": "https://haein-church.onmam.com/bbs/bbsList/34",
+          "group": "커뮤니티"
+        }
+      ],
+      "slug": "community",
+      "description": "사진과 이야기, 기도와 마음을 나누는 공간입니다."
+    }
+  ]
+}

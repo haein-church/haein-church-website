@@ -1,0 +1,15 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BoardList from '../../components/BoardList.astro';
+import { groups, menuUrl, posts, postsFor, isBoardArchived } from '../../lib/onmam';
+export function getStaticPaths(){return groups.map(group => ({params:{section:group.slug},props:{group}}));}
+const {group}=Astro.props;
+const recent=posts.filter(post=>post.group===group.name).slice(0,10);
+---
+<Layout title={`${group.name} - 해인교회`}>
+ <main class="section-wrap"><p class="breadcrumb"><a href="/">홈</a> / {group.name}</p><h1>{group.name}</h1><p class="description">{group.description}</p>
+ <nav class="cards" aria-label={`${group.name} 하위 메뉴`}>{group.children.filter(item=>item.visible!==false).map(item=><a href={menuUrl(item)}><h2>{item.name}<span>→</span></h2><p>{item.kind==='page'?'교회 안내':isBoardArchived(item.id)?`보관된 글 ${postsFor(item.id).length}개`:'기존 자료 정리 중'}</p></a>)}</nav>
+ {recent.length>0 && <section class="recent"><h2>함께 나누는 이야기</h2><BoardList items={recent} showBoard/></section>}
+ </main>
+</Layout>
+<style>.section-wrap{max-width:1120px;margin:auto;padding:3rem 1.5rem 5rem}.breadcrumb{font-size:.8rem;color:#6b7d90;margin-bottom:2rem}h1{font-size:2.4rem;letter-spacing:-.05em;color:#193e65}.description{color:#61758a;line-height:1.8;margin:1rem 0 2.5rem}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}.cards a{padding:1.5rem;border:1px solid #dce4ed;border-radius:6px}.cards a:hover{background:#f4f7fb;border-color:#8aa8c1}.cards h2{font-size:1.05rem;color:#254d70;line-height:1.5}.cards span{float:right;color:#a38355}.cards p{font-size:.8rem;color:#65788e;margin-top:1rem}.recent{margin-top:3.5rem}.recent>h2{font-size:1.4rem;color:#193e65;margin-bottom:1.5rem}@media(max-width:700px){.cards{grid-template-columns:1fr 1fr}}@media(max-width:420px){.cards{grid-template-columns:1fr}}</style>

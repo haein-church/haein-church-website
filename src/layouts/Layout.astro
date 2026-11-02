@@ -1,86 +1,33 @@
 ---
-interface Props {
-  title?: string;
-}
-const { title = "해인교회" } = Astro.props;
+import SiteNavigation from '../components/SiteNavigation.astro';
+import branding from '../data/branding.json';
+interface Props { title?: string }
+const { title = '해인교회' } = Astro.props;
 ---
-
 <html lang="ko">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="generator" content={Astro.generator} />
-    <meta name="robots" content="noindex, nofollow, noarchive" />
-    <title>{title}</title>
-    <style>
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: 'Noto Sans KR', '맑은 고딕', sans-serif; color: #222; background: #fff; }
-      a { text-decoration: none; color: inherit; }
-      img { max-width: 100%; }
-
-      /* Header */
-      header {
-        position: sticky; top: 0; z-index: 100;
-        background: #fff; border-bottom: 1px solid #e5e5e5;
-        padding: 0 2rem;
-        display: flex; align-items: center; justify-content: space-between;
-        min-height: 64px; height: auto; gap: 1rem; flex-wrap: wrap;
-      }
-      .logo { font-size: 1.3rem; font-weight: 700; color: #1a4fa0; }
-      nav { display: flex; gap: 1.5rem; flex-wrap: wrap; }
-      nav a { font-size: 0.9rem; color: #444; transition: color 0.2s; white-space: nowrap; }
-      nav a:hover { color: #1a4fa0; }
-      .nav-join {
-        border: 1px solid #1a4fa0; color: #1a4fa0 !important;
-        padding: 0.35rem 1rem; border-radius: 20px;
-      }
-      .nav-join:hover { background: #f0f5ff; }
-      .nav-login {
-        background: #1a4fa0; color: #fff !important;
-        padding: 0.35rem 1rem; border-radius: 20px;
-      }
-      .nav-login:hover { background: #0d2d6b; }
-      .section-nav { display:flex;gap:1.3rem;overflow-x:auto;white-space:nowrap;padding:.85rem 2rem;background:#f5f8fc;border-bottom:1px solid #e3e9f2; }
-      .section-nav a {font-size:.85rem;color:#334c70;flex-shrink:0}
-      @media(max-width:900px){header{padding:1rem;align-items:flex-start}header nav{gap:.8rem;align-items:center}nav a{font-size:.8rem}.section-nav{padding:.8rem 1rem}}
-
-      /* Footer */
-      footer {
-        background: #1a2a4a; color: #aaa;
-        text-align: center; padding: 2.5rem 1rem;
-        font-size: 0.85rem; line-height: 2;
-      }
-      footer .footer-name { color: #fff; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem; }
-    </style>
-  </head>
-  <body>
-    <header>
-      <a class="logo" href="/">✝ 해인교회</a>
-      <nav>
-        <a href="/about">교회소개</a>
-        <a href="/news">교회소식</a>
-        <a href="/gallery">갤러리</a>
-        <a href="/boards/51/">주보</a>
-        <a href="/mission">선교사역</a>
-        <a href="/contact">오시는 길</a>
-        <a href="/join" class="nav-join">가입신청</a>
-        <a href="/membership/">내 가입 상태</a>
-        <a href="/login" id="loginNavBtn" class="nav-login">로그인</a>
-      </nav>
-    </header>
-
-    <nav class="section-nav" aria-label="교회 자료 메뉴">
-      <a href="/services/">예배안내</a><a href="/boards/19/">새가족</a><a href="/boards/38/">찬양·성가대</a><a href="/boards/61/">우리들의 찬양</a><a href="/boards/20/">교육/훈련</a><a href="/boards/40/">사랑방</a><a href="/boards/25/">부서소개</a><a href="/boards/57/">선교사역</a><a href="/boards/30/">커뮤니티</a><a href="/boards/">전체 게시판</a>
-    </nav>
-
-    <slot />
-
-    <footer>
-      <p class="footer-name">✝ 해인교회</p>
-      <p>21041 인천 계양구 계양산로 91 (계산동)</p>
-      <p>TEL: 032-555-7004</p>
-      <p style="margin-top:0.5rem;">© 2026 해인교회. All Rights Reserved.</p>
-    </footer>
-  </body>
+ <head>
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="icon" type="image/jpeg" href={branding.logo}/>
+  <meta name="generator" content={Astro.generator}/>
+  <meta name="robots" content="noindex, nofollow, noarchive"/>
+  <meta name="description" content="하나님을 사랑하고 이웃을 섬기는 인천 해인교회. 교회소개, 예배안내, 말씀과 주보, 교육과 선교사역을 만나세요."/>
+  <title>{title}</title>
+  <style is:global>
+   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'맑은 고딕',system-ui,sans-serif;color:#26364a;background:#fff}a{color:inherit;text-decoration:none}img{max-width:100%}button,input,select,textarea{font:inherit}a,button,summary,input{touch-action:manipulation}:focus-visible{outline:3px solid #ae7939;outline-offset:4px}main{min-height:40vh}body{overflow-wrap:break-word}[hidden]{display:none!important}
+  </style>
+ </head>
+ <body>
+  <a class="skip" href="#main-content">본문 바로가기</a>
+  <SiteNavigation/>
+  <div id="main-content" tabindex="-1"><slot/></div>
+  <footer>
+   <div class="footer-inner"><div><p class="footer-name"><img src={branding.logo} alt={branding.alt} width={branding.width} height={branding.height} loading="lazy"/></p><p>하나님을 사랑하고 이웃을 섬기는 교회</p><p>21041 인천 계양구 계양산로 91 (계산동)</p><a href="tel:0325557004">032-555-7004</a></div>
+   <nav aria-label="하단 메뉴"><a href="/services/">예배안내</a><a href="/contact/">오시는 길</a><a href="/boards/">전체 메뉴·검색</a><a href="/admin/">관리자</a></nav></div>
+   <p class="copyright">© {new Date().getFullYear()} 해인교회. All Rights Reserved.</p>
+  </footer>
+ </body>
 </html>
+<style>
+ .footer-name img{display:block;background:#fff;border:5px solid #fff;border-radius:4px;box-sizing:content-box;width:220px;height:auto}
+ .skip{position:fixed;left:1rem;top:-100px;z-index:999;background:#193e65;color:#fff;padding:1rem}.skip:focus{top:1rem}footer{background:#182f49;color:#c2cedc;font-size:.85rem;padding:3rem 1.5rem 1.5rem;line-height:2}.footer-inner{max-width:1152px;margin:auto;display:flex;justify-content:space-between;gap:2rem}.footer-name{font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:.6rem}.footer-inner nav{display:flex;flex-wrap:wrap;gap:1.5rem;align-content:start}footer a:hover{text-decoration:underline}.copyright{max-width:1152px;margin:2rem auto 0;border-top:1px solid #ffffff20;padding-top:1rem;font-size:.75rem}@media(max-width:650px){.footer-inner{flex-direction:column}.footer-inner nav{gap:1rem}}
+</style>

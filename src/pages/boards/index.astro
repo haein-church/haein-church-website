@@ -1,12 +1,12 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { groups, posts, postsFor, menuUrl, postUrl } from '../../lib/onmam';
+import { groups, posts, postsFor, menuUrl, postUrl, isBoardArchived } from '../../lib/onmam';
 ---
 <Layout title="전체 게시판 - 해인교회">
  <div class="heading"><p>해인교회의 이야기와 발자취</p><h1>교회 자료실</h1></div>
  <main class="directory">
   <section class="search-panel" aria-label="자료 검색"><label for="archive-search">전체 게시글 검색</label><input id="archive-search" type="search" placeholder="제목, 게시판 또는 작성자를 입력하세요"/><p id="search-status" role="status" aria-live="polite">{posts.length}개의 게시글에서 검색할 수 있습니다.</p><ul id="search-results" hidden>{posts.map(p=><li data-search={`${p.title} ${p.boardName} ${p.author??''}`.toLocaleLowerCase()} hidden><a href={postUrl(p)}><span>{p.boardName}</span><strong>{p.title}</strong><time>{p.date}</time></a></li>)}</ul></section>
-  <div class="categories">{groups.map(group=><section><h2>{group.name}</h2><div class="menu-grid">{group.children.map(item=><a href={menuUrl(item)}><span>{item.name}</span><small>{item.kind==='page'?'교회 안내':`${postsFor(item.id).length}개의 글`}</small><b aria-hidden="true">→</b></a>)}</div></section>)}</div>
+  <div class="categories">{groups.map(group=><section><h2><a href={`/sections/${group.slug}/`}>{group.name}</a></h2><div class="menu-grid">{group.children.map(item=><a href={menuUrl(item)}><span>{item.name}</span><small>{item.kind==='page'?'교회 안내':isBoardArchived(item.id)?`보관된 글 ${postsFor(item.id).length}개`:'기존 자료 정리 중'}</small><b aria-hidden="true">→</b></a>)}</div></section>)}</div>
  </main>
 </Layout>
 <script>

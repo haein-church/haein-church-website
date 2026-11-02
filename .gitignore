@@ -37,5 +37,6 @@ migration/references/
 cloudflare-nameservers.jpg
 __pycache__/
 src/data/onmam.json
+src/data/onmam-edits.json
 public/onmam-assets/
 .pnpm-store/

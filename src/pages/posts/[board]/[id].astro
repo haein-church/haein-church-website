@@ -12,7 +12,7 @@ const newer=siblings[position-1],older=siblings[position+1];
   <p class="breadcrumb"><a href="/boards/">게시판</a> / <a href={`/boards/${record.boardId}/`}>{record.boardName}</a></p>
   <article><header class="article-header"><h1>{record.title}</h1><p>{record.author&&<span>{record.author}</span>}<time datetime={record.date??undefined}>{record.date}</time></p></header><ArchiveContent record={record}/></article>
   <nav class="article-nav" aria-label="이전 다음 글">{newer&&<a href={postUrl(newer)}>이전 글 · {newer.title}</a>}{older&&<a href={postUrl(older)}>다음 글 · {older.title}</a>}</nav>
-  <div class="back"><a href={`/boards/${record.boardId}/`}>← {record.boardName} 목록</a><a class="source" href={record.sourceUrl} target="_blank" rel="noopener noreferrer">기존 글 보기 ↗</a></div>
+  <div class="back"><a href={`/boards/${record.boardId}/`}>← {record.boardName} 목록</a>{record.sourceUrl&&<a class="source" href={record.sourceUrl} target="_blank" rel="noopener noreferrer">기존 글 보기 ↗</a>}</div>
  </main>
 </Layout>
 <style>

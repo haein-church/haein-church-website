@@ -4,7 +4,7 @@ Run with the bundled Python. Beautiful Soup is installed locally in .migration-t
 Re-running reuses successful downloads and records; interrupted downloads use .part.
 """
 from __future__ import annotations
-import argparse, base64, concurrent.futures as futures, csv, hashlib, html, json, mimetypes, re
+import argparse, base64, concurrent.futures as futures, csv, hashlib, html, json, mimetypes, re, os, shutil
 import sqlite3, sys, threading, time, urllib.parse, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,6 +17,8 @@ BASE = 'https://haein-church.onmam.com'
 OUT = ROOT / 'migration' / 'onmam'
 LOCK = threading.Lock()
 ERRORS = []
+ALL_BOARDS = False
+REUSE_ASSETS = None
 HEADERS = {'User-Agent': 'HaeinChurchArchive/1.0', 'Referer': BASE + '/'}
 
 def dump(path, value):
@@ -82,7 +84,7 @@ def catalog():
             if not match:
                 continue
             # The request includes bulletins, but not the other church-news boards.
-            if name == '교회소식' and match[2] != '51':
+            if not ALL_BOARDS and name == '교회소식' and match[2] != '51':
                 continue
             children.append({'name': txt(link), 'kind': 'page' if match[1] == 'viewPage' else 'board',
                              'id': match[2], 'url': url, 'group': name})
@@ -252,6 +254,24 @@ def asset(spec):
         old = json.loads(meta_path.read_text(encoding='utf-8'))
         if old.get('status') == 'downloaded' and (OUT / old['local_path']).exists():
             return old
+    if REUSE_ASSETS:
+        seed_meta = REUSE_ASSETS / 'asset-records' / f'{uid}.json'
+        if seed_meta.is_file():
+            old = json.loads(seed_meta.read_text(encoding='utf-8'))
+            source = (REUSE_ASSETS / old.get('local_path', '')).resolve()
+            if (old.get('status') == 'downloaded' and source.is_relative_to(REUSE_ASSETS)
+                    and source.is_file() and source.stat().st_size == old.get('bytes')):
+                with source.open('rb') as stream:
+                    valid = hashlib.file_digest(stream, 'sha256').hexdigest() == old.get('sha256')
+                if valid:
+                    target = OUT / 'assets' / source.name
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    if not target.exists():
+                        try: os.link(source, target)
+                        except OSError: shutil.copy2(source, target)
+                    result = {**old, **spec, 'local_path': target.relative_to(OUT).as_posix(), 'reused_at': now()}
+                    dump(meta_path, result)
+                    return result
     suffix = Path(urllib.parse.unquote(parsed.path)).suffix.lower()
     if not re.fullmatch(r'\.[a-z0-9]{1,7}', suffix):
         suffix = Path(spec.get('name', '')).suffix.lower()
@@ -368,12 +388,27 @@ def finalize(items, records, assets):
     print('FINAL '+json.dumps({k:v for k,v in report.items() if k not in ('failed_assets','external_assets')},ensure_ascii=False),flush=True)
 
 def main():
+    global OUT, ALL_BOARDS, REUSE_ASSETS
     parser=argparse.ArgumentParser()
+    parser.add_argument('--all-boards',action='store_true',help='Include every Onmam menu, including all church-news boards')
+    parser.add_argument('--output',type=Path,help='Separate snapshot folder under migration/onmam')
+    parser.add_argument('--reuse-assets',type=Path,help='Reuse checksum-verified files from an earlier local archive')
     parser.add_argument('--inventory-only',action='store_true')
     parser.add_argument('--finalize-only',action='store_true')
     parser.add_argument('--assets-only',action='store_true')
     parser.add_argument('--external-assets-only',action='store_true')
     args=parser.parse_args()
+    archive_root = (ROOT / 'migration' / 'onmam').resolve()
+    if args.output:
+        OUT = args.output.resolve()
+        if not OUT.is_relative_to(archive_root): parser.error('Output must stay under migration/onmam')
+    if args.all_boards and OUT == archive_root:
+        parser.error('Use a separate --output snapshot to preserve the original selected backup')
+    ALL_BOARDS = args.all_boards
+    if args.reuse_assets:
+        REUSE_ASSETS = args.reuse_assets.resolve()
+        if not REUSE_ASSETS.is_relative_to(archive_root) or REUSE_ASSETS == OUT:
+            parser.error('Reuse archive must be a different folder under migration/onmam')
     OUT.mkdir(parents=True,exist_ok=True)
     items=catalog()
     if args.external_assets_only:

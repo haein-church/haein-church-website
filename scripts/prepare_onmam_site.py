@@ -1,5 +1,5 @@
 """Build local website content from the verified archive; never upload anything."""
-import json, os, re, shutil, sys
+import argparse, json, os, re, shutil, sys
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -11,12 +11,26 @@ ARCHIVE=ROOT/'migration/onmam'
 ALLOWED=set('article div span p br table tbody thead tfoot tr td th colgroup col ul ol li strong b em i u s sub sup blockquote h1 h2 h3 h4 h5 h6 img figure figcaption a video audio source hr pre code dl dd dt'.split())
 
 def main():
+    global ARCHIVE
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--archive',type=Path,default=ARCHIVE)
+    args=parser.parse_args()
+    ARCHIVE=args.archive.resolve()
+    if not ARCHIVE.is_relative_to((ROOT/'migration/onmam').resolve()):
+        parser.error('Archive must stay under migration/onmam')
     with (ARCHIVE/'content.jsonl').open(encoding='utf-8') as stream:
         records=[json.loads(line) for line in stream if line.strip()]
     catalog=json.loads((ARCHIVE/'catalog.json').read_text(encoding='utf-8'))
     assets={a['url']:a for r in records for a in r.get('assets',[])}
     destination=ROOT/'public/onmam-assets'
     destination.mkdir(parents=True,exist_ok=True)
+    branding=json.loads((ROOT/'src/data/branding.json').read_text(encoding='utf-8'))
+    logo_name=Path(branding['logo']).name
+    logo_original=ROOT/'migration/onmam/branding'/logo_name
+    logo_target=destination/logo_name
+    if logo_original.is_file() and not logo_target.exists():
+        try: os.link(logo_original,logo_target)
+        except OSError: shutil.copy2(logo_original,logo_target)
     copied=0
     for a in assets.values():
         if a.get('status')!='downloaded': continue
@@ -70,6 +84,8 @@ def main():
         return str(soup)
     output=[]
     for r in records:
+        if r.get('status') != 'saved':
+            raise ValueError('Archive has unresolved records; complete the backup before preparing the site')
         title=r['title']
         file_items=[]
         for a in r.get('assets',[]):
