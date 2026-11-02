@@ -1,11 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import branding from '../data/branding.json';
 ---
 
 <Layout title="로그인 - 해인교회">
   <main class="login-wrap">
     <div class="login-box">
-      <h1>✝ 해인교회</h1>
+      <img src={branding.logo} alt={branding.alt} width={branding.width} height={branding.height} style="display:block;margin:0 auto 1rem"/>
+      <h1>해인교회 로그인</h1>
       <p class="sub">회원 로그인</p>
 
       <div id="msg" class="msg hidden" role="status" aria-live="polite"></div>
@@ -37,8 +39,8 @@ import Layout from '../layouts/Layout.astro';
   const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
 
   // 이미 로그인된 경우 본인의 가입 상태로 이동
-  supabase.auth.getSession().then(({ data }) => {
-    if (data.session) window.location.href = '/membership/';
+  supabase.auth.getSession().then(async ({ data }) => {
+    if (data.session) window.location.href = await isAdministrator(supabase) ? '/admin/' : '/membership/';
   });
 
   form.addEventListener('submit', async (e) => {

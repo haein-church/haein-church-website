@@ -7,9 +7,9 @@
   },
   "scripts": {
     "test:membership": "node --test scripts/test_membership.mjs",
-    "test:cms": "node --experimental-strip-types --test scripts/test_local_cms.mjs scripts/test_content_edits.mjs",
+    "test:cms": "node --experimental-strip-types --test scripts/test_local_cms.mjs scripts/test_content_edits.mjs scripts/test_online_cms.mjs",
     "dev": "astro dev --background --host 127.0.0.1",
-    "build": "astro build",
+    "build": "node scripts/prepare_cms_catalog.mjs && astro build",
     "preview": "npm run build && wrangler dev",
     "astro": "astro",
     "generate-types": "wrangler types",

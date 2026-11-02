@@ -9,7 +9,7 @@ const group=groups.find(group=>group.children.some(item=>item.kind==='page'&&ite
 ---
 <Layout title={`${record.title} - 해인교회`}>
  <div class="church-heading"><p>{group?.name??record.group}</p><h1>{record.title}</h1></div>
- <main class="church-wrap"><nav aria-label={`${group?.name??record.group} 메뉴`}>{group?.children.filter(item=>item.kind==='page'&&item.visible!==false).map(item=><a href={urls[item.id]??`/church/${item.id}/`} aria-current={item.id===record.id?'page':undefined}>{item.name}</a>)}</nav><ArchiveContent record={record}/></main>
+ <main class="church-wrap" data-record-key={record.key}><nav aria-label={`${group?.name??record.group} 메뉴`}>{group?.children.filter(item=>item.kind==='page'&&item.visible!==false).map(item=><a href={urls[item.id]??`/church/${item.id}/`} aria-current={item.id===record.id?'page':undefined}>{item.name}</a>)}</nav><ArchiveContent record={record}/></main>
 </Layout>
 <style>
 .church-heading{background:#f0f5fc;padding:3rem max(1.5rem,calc((100% - 1000px)/2));border-bottom:1px solid #e1e8f4}.church-heading p{font-size:.9rem;color:#587399;margin-bottom:.5rem}.church-heading h1{font-size:2.2rem;color:#163c73}.church-wrap{max-width:1048px;margin:auto;padding:2rem 1.5rem 4rem}.church-wrap nav{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:2.5rem}.church-wrap nav a{padding:.55rem .9rem;border:1px solid #d9e2ee;border-radius:5px;font-size:.9rem}.church-wrap nav a[aria-current]{background:#1a4fa0;color:#fff;border-color:#1a4fa0}

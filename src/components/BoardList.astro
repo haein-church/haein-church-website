@@ -4,7 +4,7 @@ interface Props { items: ArchiveRecord[]; showBoard?: boolean }
 const { items, showBoard=false }=Astro.props;
 ---
 <ul class="post-list">
-{items.map(post => <li><a href={postUrl(post)}>{showBoard && <span class="board">{post.boardName}</span>}<span class="title">{post.title}</span><span class="date">{post.date ?? ''}</span></a></li>)}
+{items.map(post => <li data-post-key={post.key}><a href={postUrl(post)}>{showBoard && <span class="board">{post.boardName}</span>}<span class="title">{post.title}</span><span class="date">{post.date ?? ''}</span></a></li>)}
 </ul>
 {items.length===0 && <p class="empty">등록된 게시글이 없습니다.</p>}
 <style>

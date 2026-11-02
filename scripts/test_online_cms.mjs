@@ -1,0 +1,45 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {PGlite} from '@electric-sql/pglite';
+import {readFile} from 'node:fs/promises';
+test('online CMS enforces admin writes, hides draft files, and protects revisions',async()=>{
+ const db=new PGlite();const admin='00000000-0000-4000-8000-000000000001',member='00000000-0000-4000-8000-000000000002';
+ const actor=async(role,id='')=>{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);await db.exec(`set role ${role}`);};
+ try{
+  await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create schema storage;
+   create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,raw_user_meta_data jsonb default '{}');
+   create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+   grant usage on schema public,auth,storage to anon,authenticated;
+   create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint);
+   create table storage.objects(id int primary key,bucket_id text,name text);
+   alter table storage.objects enable row level security;grant select,insert,update,delete on storage.objects to anon,authenticated;`);
+  await db.exec(await readFile('supabase/migrations/202610200002_membership_approval.sql','utf8'));
+  await db.exec(await readFile('supabase/migrations/20261102022722_online_cms_and_slides.sql','utf8'));
+  await db.query('insert into auth.users(id,email,email_confirmed_at) values($1,$2,now()),($3,$4,now())',[admin,'admin@example.invalid',member,'member@example.invalid']);
+  await db.query('insert into private.church_admins(user_id) values($1)',[admin]);
+  await actor('anon');await assert.rejects(db.query('select * from public.church_cms_edits'));
+  await assert.rejects(db.query("select public.save_church_site('menus','{}',0)"));
+  await actor('authenticated',member);await assert.rejects(db.query("select public.save_church_site('menus','{}',0)"));
+  await assert.rejects(db.query("insert into storage.objects values(1,'church-media','a/b.jpg')"));
+  await actor('authenticated',admin);
+  const menus={groups:[{name:'교회소식',slug:'news',children:[{name:'주보',id:'51',kind:'board'}]}]};
+  assert.equal((await db.query("select public.save_church_site('menus',$1,0) as revision",[menus])).rows[0].revision,1);
+  await assert.rejects(db.query("select public.save_church_site('menus',$1,0)",[menus]));
+  const path='00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000003.jpg';
+  await db.query("insert into storage.objects values(1,'church-media',$1)",[path]);
+  await db.query("insert into public.church_cms_assets(object_path,owner_key,name,mime,bytes) values($1,'post-51-local-test','사진.jpg','image/jpeg',100)",[path]);
+  await actor('anon');assert.equal((await db.query('select * from storage.objects')).rows.length,0);
+  await actor('authenticated',admin);
+  const payload={key:'post-51-local-test',kind:'post',id:'local-test',boardId:'51',title:'새 주보',date:'2026-11-02',bodyText:'공개 본문',hidden:false,addedFiles:[{name:'사진.jpg',url:'storage:'+path}]};
+  await db.query('select public.save_church_content($1,$2,1,false)',[payload.key,payload]);
+  await actor('anon');assert.equal((await db.query('select * from storage.objects')).rows.length,1);
+  assert.equal((await db.query('select public.read_church_content() as items')).rows[0].items[0].title,'새 주보');
+  await actor('authenticated',admin);await db.query('select public.save_church_content($1,$2,2,false)',[payload.key,{...payload,hidden:true,bodyText:'비공개 본문'}]);
+  await actor('anon');assert.equal((await db.query('select * from storage.objects')).rows.length,0);
+  const hidden=(await db.query('select public.read_church_content() as items')).rows[0].items[0];assert.equal(hidden.hidden,true);assert.equal(hidden.bodyText,undefined);assert.equal(hidden.addedFiles,undefined);
+  await actor('authenticated',admin);await db.query('select public.save_church_content($1,null,3,true)',[payload.key]);
+  assert.equal((await db.query('select * from public.church_cms_edits')).rows.length,0);
+  assert.equal((await db.query('select * from public.church_cms_history')).rows.length,4);
+  await assert.rejects(db.query('delete from public.church_cms_history'));
+ }finally{await db.close();}
+});

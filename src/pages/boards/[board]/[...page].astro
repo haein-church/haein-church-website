@@ -14,7 +14,8 @@ const pageUrl=(n:number)=>`/boards/${board.id}/${n===1?'':n+'/'}`;
 ---
 <Layout title={`${board.name} - 해인교회`}>
  <div class="page-heading"><p>{board.group}</p><h1>{board.name}</h1></div>
- <main class="board-wrap">
+ <main class="board-wrap" data-live-board={board.id} data-first-page={current===1?'true':'false'}>
+  <section data-live-posts></section>
   <nav class="board-nav" aria-label={`${board.group} 게시판`}>{siblings.map(item=><a href={menuUrl(item)} aria-current={item.id===board.id?'page':undefined}>{item.name}</a>)}</nav>
   {isBoardArchived(board.id)||count>0||board.id.startsWith('local-') ? <><div class="board-meta"><p>보관된 글 <strong>{count}</strong>개</p><a href="/boards/">전체 게시판 보기 →</a></div><BoardList items={items}/></> : <section class="archive-pending"><h2>기존 홈페이지의 자료를 정리하고 있습니다.</h2><p>이 게시판의 글은 온맘닷컴 홈페이지에서 확인하실 수 있습니다.</p><a href={board.url} target="_blank" rel="noopener noreferrer">기존 {board.name} 게시판 보기 ↗</a></section>}
   {total>1&&<nav class="pagination" aria-label="게시판 페이지">{current>1&&<a href={pageUrl(current-1)}>← 이전</a>}{Array.from({length:total},(_,i)=>i+1).filter(n=>n===1||n===total||Math.abs(n-current)<=2).map((n,i,list)=><>{i>0&&n-list[i-1]>1&&<span>…</span>}<a href={pageUrl(n)} aria-current={n===current?'page':undefined}>{n}</a></>)}{current<total&&<a href={pageUrl(current+1)}>다음 →</a>}</nav>}

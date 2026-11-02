@@ -27,7 +27,8 @@ def main():
     branding=json.loads((ROOT/'src/data/branding.json').read_text(encoding='utf-8'))
     logo_name=Path(branding['logo']).name
     logo_original=ROOT/'migration/onmam/branding'/logo_name
-    logo_target=destination/logo_name
+    logo_target=ROOT/'public'/branding['logo'].lstrip('/')
+    logo_target.parent.mkdir(parents=True,exist_ok=True)
     if logo_original.is_file() and not logo_target.exists():
         try: os.link(logo_original,logo_target)
         except OSError: shutil.copy2(logo_original,logo_target)

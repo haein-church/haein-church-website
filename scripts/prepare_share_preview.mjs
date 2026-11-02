@@ -29,8 +29,8 @@ async function walk(folder){for(const entry of await readdir(folder,{withFileTyp
  if(!entry.isFile())throw new Error('Unexpected non-file in build');
  if(replacements.has('/'+rel.replaceAll('\\','/')))continue;
  await mkdir(dirname(destination),{recursive:true});
- if(extname(path)==='.html'){
-  let content=await readFile(path,'utf8');content=content.replace(/\/onmam-assets\/[a-zA-Z0-9._-]+/g,from=>replacements.get(from)??from);
+ if(['.html','.json'].includes(extname(path))){
+  let content=await readFile(path,'utf8');content=content.replace(/\/onmam-assets\/[a-zA-Z0-9._-]+/g,from=>{const value=replacements.get(from);if(!value)return from;return extname(path)==='.json'?JSON.stringify(value.replaceAll('&amp;','&').replaceAll('&quot;','"')).slice(1,-1):value;});
   await writeFile(destination,content);
  }else{try{await link(path,destination);}catch{await copyFile(path,destination);}}
  const info=await stat(destination);if(info.size>25*1024*1024)throw new Error('Pages file limit exceeded');files++;bytes+=info.size;

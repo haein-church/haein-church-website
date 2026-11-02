@@ -8,7 +8,7 @@ const siblings=postsFor(record.boardId!);const position=siblings.findIndex(p=>p.
 const newer=siblings[position-1],older=siblings[position+1];
 ---
 <Layout title={`${record.title} - 해인교회`}>
- <main class="article-wrap">
+ <main class="article-wrap" data-record-key={record.key}>
   <p class="breadcrumb"><a href="/boards/">게시판</a> / <a href={`/boards/${record.boardId}/`}>{record.boardName}</a></p>
   <article><header class="article-header"><h1>{record.title}</h1><p>{record.author&&<span>{record.author}</span>}<time datetime={record.date??undefined}>{record.date}</time></p></header><ArchiveContent record={record}/></article>
   <nav class="article-nav" aria-label="이전 다음 글">{newer&&<a href={postUrl(newer)}>이전 글 · {newer.title}</a>}{older&&<a href={postUrl(older)}>다음 글 · {older.title}</a>}</nav>

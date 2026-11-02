@@ -64,6 +64,11 @@ export function createLocalCms(root) {
   if(!localRequestAllowed(req,req.method!=='GET'))return respond(403,{error:'이 컴퓨터의 127.0.0.1 로컬 관리 화면에서만 사용할 수 있습니다.'});
   const handle=async()=>{
    try{
+    if(req.method==='GET'&&url.pathname==='/__church-cms/setup-sql'){
+     const membership=await readFile(resolve(root,'supabase/migrations/202610200002_membership_approval.sql'),'utf8');
+     const cms=await readFile(resolve(root,'supabase/migrations/20261102022722_online_cms_and_slides.sql'),'utf8');
+     return respond(200,{sql:membership+'\n'+cms});
+    }
     const snapshot=await state();
     if(req.method==='GET'&&url.pathname==='/__church-cms/state'){
      const records=[...snapshot.records,...Object.values(snapshot.edits.entries).filter(edit=>!snapshot.records.some(record=>record.key===edit.key))].map(record=>({...record,...snapshot.edits.entries[record.key]}));

@@ -1,12 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import BoardPreview from '../components/BoardPreview.astro';
+import HeroSlides from '../components/HeroSlides.astro';
 import { groups, postsFor, postUrl, pages } from '../lib/onmam';
 const moments = postsFor('25').filter(post => post.images.length).slice(0,3);
 const churchImage = pages.find(page => page.id === '2')?.images[0];
 ---
 <Layout title="해인교회 · 하나님을 사랑하고 이웃을 섬기는 교회">
  <main>
+  <HeroSlides/>
   <section class="hero"><div class="hero-inner"><div><p class="eyebrow">인천 계양구 · 해인교회</p><h1>함께 예배하고,<br/>이웃과 더불어 살아갑니다.</h1><p class="intro">하나님을 사랑하고 이웃을 사랑하는 교회.<br/>예수님의 삶을 따라 소외된 이웃을 섬기며 함께 예배합니다.</p><div class="hero-actions"><a class="solid" href="/about/">해인교회 소개 →</a><a class="outline" href="/contact/">처음 오시는 분께</a></div></div><aside class="welcome"><p class="eyebrow">예배에 초대합니다</p><h2>주일예배 <strong>오전 11:00</strong></h2><p>인천 계양구 계양산로 91</p><a href="/services/">예배·부서별 모임 안내 →</a><a href="/boards/19/">새가족반 알아보기 →</a></aside></div></section>
   <nav class="quick" aria-label="자주 찾는 메뉴"><a href="/services/"><span>01</span>예배안내 <b>↗</b></a><a href="/boards/13/"><span>02</span>주일설교 <b>↗</b></a><a href="/boards/51/"><span>03</span>주보 <b>↗</b></a><a href="/contact/"><span>04</span>오시는 길 <b>↗</b></a></nav>
   <section class="section"><div class="section-title"><div><p class="eyebrow">말씀과 교회의 소식</p><h2>함께 나누는 이야기</h2></div><a href="/sections/news/">교회소식 전체보기 →</a></div><div class="board-grid"><BoardPreview id="13" title="주일설교 BMP"/><BoardPreview id="51" title="주보"/><BoardPreview id="55" title="교회소식"/><BoardPreview id="57" title="사회복지선교사역"/></div></section>

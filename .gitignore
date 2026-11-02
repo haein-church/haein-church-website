@@ -39,4 +39,6 @@ __pycache__/
 src/data/onmam.json
 src/data/onmam-edits.json
 public/onmam-assets/
+public/cms/
 .pnpm-store/
+supabase/.temp/
