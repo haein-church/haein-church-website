@@ -16,5 +16,14 @@
 9. 추적 중인 Git 변경 없음. push할 내용 없음.
 10. 명령서에 따른 문서 세트(`docs/`) 작성.
 
+## 2026-11-09 (전체 게시판 수집)
+- 교회소식(918), 주보(458), 주일설교 BMP(323), 사진·동영상(20) 포함 전체 수집 완료: 기록 1,993 (게시글 1,986, 고정 페이지 7).
+- 자산 6,255개 중 6,153개 저장, 나머지는 원본 404 (오류 기록 169건, 고유 누락 94건).
+- 작업 위치: D:\haein-work\run\migration\onmam\all-boards. 프로젝트 `migration/onmam`은 이 스냅샷을 가리키는 연결(junction)이다.
+- 이전 선택 수집본: `migration/onmam-selected-20261109/` (삭제하지 않음).
+- 생성물(`public/onmam-assets`, `dist`)은 D:\haein-work\site 로 옮기고 연결했다.
+- 빌드 2,179 페이지, 로컬 점검 통과.
+- Cloudflare 미리보기 재배포(동영상 6개 25MiB 초과로 제외): https://preview-20261109.haein-church-9j8.pages.dev/boards/13/ 에서 주일설교 323건 확인.
+
 ## 미실행
 - 관리자 조사, 온맘 백업 기능 확인, GitHub 신규 저장소, Cloudflare·Supabase 대상 확인, 도메인 연결, 공개 배포.
