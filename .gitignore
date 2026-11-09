@@ -42,3 +42,5 @@ public/onmam-assets/
 public/cms/
 .pnpm-store/
 supabase/.temp/
+
+migration/onmam-*/
