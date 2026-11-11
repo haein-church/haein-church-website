@@ -15,7 +15,7 @@
 
 | 서비스 | ChatGPT 작업 환경 | Claude |
 |---|---|---|
-| GitHub | 현재 작업 브랜치 push 성공 (`a5b5660`) | 개인 계정에 공식 Claude 앱 미설치 확인. 해인교회 저장소 하나를 선택한 설치·승인 화면 준비. 최종 승인 및 실제 push 검증 대기 |
+| GitHub | 현재 작업 브랜치 push 성공 (`a5b5660`, 공동 작업 설정 `bf40285`) | 사용자 최종 승인 후 공식 Claude 앱 설치 완료. 설치 ID `180820369`, `haein-church/haein-church-website` 하나만 선택됨. 코드·Actions·워크플로·PR·이슈 등의 읽기/쓰기 권한을 GitHub 설치 화면에서 확인. Claude 세션의 재연결 및 실제 push 검증은 남음 |
 | Cloudflare | 이 컴퓨터 Wrangler OAuth 계정 `godls1224@naver.com`, `pages:write` 확인 | 별도 인증 상태 미확인. 같은 컴퓨터의 같은 Windows 사용자로 실행하는 CLI는 기존 Wrangler 인증을 사용할 수 있으나, Claude 실행 환경에서 `whoami` 확인 필요 |
 | Supabase | 브라우저에서 지정 프로젝트 로그인·서울 리전 확인. 현재 ChatGPT Supabase 커넥터는 지정 프로젝트에 권한 오류 | 별도 MCP 인증 필요. 프로젝트 한정 `.mcp.json` 준비. 인증 및 SQL 실행 권한 미검증 |
 
