@@ -1,0 +1,111 @@
+---
+import slides from '../data/hero-slides.json';
+---
+<section class="hero-slider" aria-roledescription="캐러셀" aria-label="해인교회 성경 말씀" data-autoplay-ms="11000" tabindex="0">
+  <div class="slider-track">
+    {slides.map((slide,index)=><article class="slide" role="group" aria-roledescription="슬라이드" aria-label={`${index+1} / ${slides.length}`} data-index={index} hidden={index>0}>
+      <img class="slide-art" src={slide.image} alt={slide.alt} width={slide.width} height={slide.height} loading={index===0?'eager':'lazy'} decoding="async" fetchpriority={index===0?'high':'auto'}/>
+      <div class="slide-text"><blockquote class="scripture">{slide.lines.map(line=><span>{line}</span>)}</blockquote><p class="slide-ref">{slide.reference}</p></div>
+    </article>)}
+  </div>
+  <div class="slider-controls">
+    <button type="button" class="slider-btn" data-action="prev" aria-label="이전 슬라이드">‹</button>
+    <ol class="slider-dots" aria-label="슬라이드 선택">{slides.map((slide,index)=><li><button type="button" data-goto={index} aria-label={`${index+1}번 슬라이드`} aria-current={String(index===0)}></button></li>)}</ol>
+    <button type="button" class="slider-btn" data-action="next" aria-label="다음 슬라이드">›</button>
+    <button type="button" class="slider-btn slider-play" data-action="toggle" aria-pressed="false" aria-label="자동 전환 일시정지">❚❚</button>
+  </div>
+</section>
+
+<script>
+  const root = document.querySelector<HTMLElement>('.hero-slider');
+  if (root) {
+    const slides = Array.from(root.querySelectorAll<HTMLElement>('.slide'));
+    const dots = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-goto]'));
+    const toggle = root.querySelector<HTMLButtonElement>('[data-action="toggle"]')!;
+    const interval = Number(root.dataset.autoplayMs) || 7000;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let current = 0;
+    let playing = !reduceMotion;
+    let timer: number | undefined;
+    let hovering = false;
+
+    function show(index: number) {
+      current = (index + slides.length) % slides.length;
+      slides.forEach((slide, i) => {
+        const active = i === current;
+        slide.hidden = !active;
+        slide.classList.toggle('is-active', active);
+      });
+      dots.forEach((dot, i) => dot.setAttribute('aria-current', String(i === current)));
+    }
+    function schedule() {
+      clearTimeout(timer);
+      if (playing && !hovering) timer = window.setTimeout(() => { show(current + 1); schedule(); }, interval);
+    }
+    function setPlaying(value: boolean) {
+      playing = value;
+      toggle.setAttribute('aria-pressed', String(!value));
+      toggle.textContent = value ? '❚❚' : '▶';
+      toggle.setAttribute('aria-label', value ? '자동 전환 일시정지' : '자동 전환 시작');
+      schedule();
+    }
+    // 사용자가 직접 넘기면 충분히 읽을 수 있도록 자동 전환을 한동안 늦춘다.
+    function userMoved(index: number) { show(index); clearTimeout(timer); if (playing) timer = window.setTimeout(() => { show(current + 1); schedule(); }, interval * 2); }
+
+    root.querySelector('[data-action="prev"]')?.addEventListener('click', () => userMoved(current - 1));
+    root.querySelector('[data-action="next"]')?.addEventListener('click', () => userMoved(current + 1));
+    dots.forEach(dot => dot.addEventListener('click', () => userMoved(Number(dot.dataset.goto))));
+    toggle.addEventListener('click', () => setPlaying(!playing));
+    root.addEventListener('mouseenter', () => { hovering = true; clearTimeout(timer); });
+    root.addEventListener('mouseleave', () => { hovering = false; schedule(); });
+    root.addEventListener('focusin', () => { hovering = true; clearTimeout(timer); });
+    root.addEventListener('focusout', () => { hovering = false; schedule(); });
+    root.addEventListener('keydown', event => {
+      if (event.key === 'ArrowLeft') { event.preventDefault(); userMoved(current - 1); }
+      if (event.key === 'ArrowRight') { event.preventDefault(); userMoved(current + 1); }
+    });
+    let startX = 0;
+    root.addEventListener('touchstart', event => { startX = event.touches[0].clientX; }, { passive: true });
+    root.addEventListener('touchend', event => {
+      const dx = event.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 40) userMoved(current + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+
+    show(0);
+    setPlaying(playing);
+  }
+</script>
+
+<style>
+  .hero-slider{position:relative;overflow:hidden;background:#fbfaf5;color:#183f47;isolation:isolate}
+  .slider-track{position:relative;min-height:clamp(480px,38vw,660px)}
+  .slide{position:absolute;inset:0;display:flex;align-items:center}
+  .slide[hidden]{display:none}
+  .slide.is-active{display:flex;animation:slideFade .8s ease}
+  @keyframes slideFade{from{opacity:0}to{opacity:1}}
+  .slide-art{position:absolute;inset:0 auto 0 0;width:49%;height:100%;object-fit:cover;object-position:center 55%}
+  .slide::after{content:"";position:absolute;inset:0 auto 0 44%;width:6%;background:linear-gradient(90deg,#fbfaf500,#fbfaf5);pointer-events:none}
+  .slide-text{position:relative;z-index:1;width:100%;margin:0 auto;padding:2.2rem 3.5vw 4rem 52%;text-align:center}
+  .scripture{font-family:Georgia,'Batang','바탕',serif;font-size:clamp(1.2rem,1.65vw,1.9rem);font-weight:500;letter-spacing:-.035em;line-height:1.85;margin:auto;word-break:keep-all;text-wrap:pretty}
+  .scripture span{display:block}
+  .slide-ref{margin-top:1rem;font-size:1rem;font-weight:600;color:#385b60;letter-spacing:.04em}
+  .slider-controls{position:absolute;inset:auto 0 1.3rem;z-index:2;display:flex;align-items:center;justify-content:center;gap:.7rem}
+  .slider-btn{width:44px;height:44px;border-radius:50%;border:1px solid #395a5266;background:#ffffffc9;color:#254d4e;font-size:1.3rem;cursor:pointer}
+  .slider-play{font-size:.8rem}
+  .slider-dots{list-style:none;display:flex;gap:0;padding:0}
+  .slider-dots button{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:0;background:transparent;cursor:pointer;padding:0}
+  .slider-dots button::after{content:"";display:block;width:10px;height:10px;border-radius:50%;background:#395a5266}
+  .slider-dots button[aria-current="true"]::after{background:#254d4e}
+  .slider-btn:focus-visible,.slider-dots button:focus-visible{outline:3px solid #254d4e;outline-offset:3px}
+  @media(max-width:700px){
+    .slider-track{min-height:0}
+    .slide{position:relative;inset:auto;display:block}
+    .slide.is-active{display:block}
+    .slide-art{position:relative;inset:auto;display:block;width:100%;height:clamp(210px,60vw,280px);object-position:center 45%}
+    .slide::after{display:none}
+    .slide-text{min-height:310px;padding:1.2rem 1rem 5rem}
+    .scripture{max-width:100%;font-size:1.05rem;line-height:1.85}
+    .slide-ref{font-size:.85rem;margin-top:1rem}
+  }
+  @media(prefers-reduced-motion:reduce){.slide.is-active{animation:none}}
+</style>

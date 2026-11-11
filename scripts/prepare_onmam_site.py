@@ -14,8 +14,12 @@ def main():
     global ARCHIVE
     parser=argparse.ArgumentParser()
     parser.add_argument('--archive',type=Path,default=ARCHIVE)
+    parser.add_argument('--data-output',type=Path,default=ROOT/'src/data/onmam.json',help='Prepared JSON destination within this checkout, for staged incremental imports')
     args=parser.parse_args()
     ARCHIVE=args.archive.resolve()
+    data=args.data_output.resolve()
+    if not (data.is_relative_to(ROOT.resolve()) or data.is_relative_to((ROOT/'migration/onmam').resolve())):
+        parser.error('Prepared data must stay within this checkout')
     if not ARCHIVE.is_relative_to((ROOT/'migration/onmam').resolve()):
         parser.error('Archive must stay under migration/onmam')
     with (ARCHIVE/'content.jsonl').open(encoding='utf-8') as stream:
@@ -105,7 +109,6 @@ def main():
                        'sourceUrl':r['url'],'html':sanitize(r.get('body_html',''),title),
                        'images':images,'files':file_items,'embeds':embeds,
                        'unavailableFiles':sum(a.get('status')=='failed' for a in r.get('assets',[]))})
-    data=ROOT/'src/data/onmam.json'
     data.parent.mkdir(parents=True,exist_ok=True)
     data.write_text(json.dumps({'groups':catalog['groups'],'records':output},ensure_ascii=False),encoding='utf-8')
     print(json.dumps({'prepared_records':len(output),'linked_asset_files':copied,'publication':'local only'},ensure_ascii=True))

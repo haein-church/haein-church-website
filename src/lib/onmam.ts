@@ -23,7 +23,8 @@ const contentRecords = applyContentEdits(data.records,edits);
 for(const group of groups) for(const item of group.children) {
  if(item.kind==='page'&&!contentRecords.some(record=>record.kind==='page'&&record.id===item.id)) contentRecords.push({key:`page-${item.id}`,kind:'page',id:item.id,boardId:null,boardName:null,group:group.name,title:item.name,author:null,date:null,sourceUrl:'',html:'<p>안내 내용을 준비하고 있습니다.</p>',images:[],files:[],embeds:[],unavailableFiles:0});
 }
-export const records = contentRecords.map(record=>{
+import { hiddenKeys } from './hidden-records';
+export const records = contentRecords.filter(record=>!hiddenKeys.has(record.key)).map(record=>{
  const group=groups.find(group=>group.children.some(item=>item.kind===(record.kind==='page'?'page':'board')&&item.id===(record.boardId??record.id)));
  const item=group?.children.find(item=>item.kind===(record.kind==='page'?'page':'board')&&item.id===(record.boardId??record.id));
  return {...record,group:group?.name??record.group,boardName:record.kind==='post'?(item?.name??record.boardName):record.boardName};

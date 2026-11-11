@@ -6,6 +6,7 @@ const path = Astro.url.pathname;
 <div class="site-header">
   <div class="header-top">
     <a class="brand" href="/" aria-label="해인교회 홈"><img src={branding.logo} alt={branding.alt} width={branding.width} height={branding.height} fetchpriority="high"/><small>하나님을 사랑하고 이웃을 섬기는 교회</small></a>
+    <button type="button" class="menu-toggle" id="menu-toggle" aria-controls="primary-menu" aria-expanded="false">메뉴 열기</button>
     <nav class="account" aria-label="회원 메뉴"><a href="/boards/">전체 메뉴·검색</a><a href="/join/">가입신청</a><a href="/membership/">내 가입 상태</a><a href="/login/" id="loginNavBtn">로그인</a></nav>
   </div>
   <nav class="primary" id="primary-menu" aria-label="주요 메뉴">
@@ -22,9 +23,30 @@ const path = Astro.url.pathname;
    menu.addEventListener('keydown', event => { if(event.key === 'Escape') { menu.open = false; menu.querySelector('summary')?.focus(); } });
  });
  document.addEventListener('click', event => { if (event.target instanceof Node && !menus.some(menu => menu.contains(event.target as Node))) menus.forEach(menu => menu.open = false); });
+ const toggle = document.getElementById('menu-toggle');
+ const primary = document.getElementById('primary-menu');
+ function setMenuOpen(open:boolean) {
+   primary?.classList.toggle('open', open);
+   toggle?.setAttribute('aria-expanded', String(open));
+   if(toggle)toggle.textContent = open ? '메뉴 닫기' : '메뉴 열기';
+ }
+ toggle?.addEventListener('click', () => setMenuOpen(!primary?.classList.contains('open')));
+ primary?.addEventListener('keydown', event=>{
+   if(event.key==='Escape'&&primary.classList.contains('open')){setMenuOpen(false);toggle?.focus();}
+ });
+ primary?.addEventListener('click',event=>{if(event.target instanceof Element&&event.target.closest('a[href]'))setMenuOpen(false);});
 </script>
 <style is:global>
  .brand{flex-direction:column!important;align-items:flex-start!important;gap:.5rem!important;letter-spacing:0!important}.brand img{display:block;width:220px;height:auto;object-fit:contain}.brand>small{font-size:.68rem;font-weight:400;color:#64748b;letter-spacing:0}
  .site-header{background:#fff;border-bottom:1px solid #dfe6ee;position:relative;z-index:100}.header-top{max-width:1200px;margin:auto;padding:1.5rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1.5rem}.brand{display:flex;gap:.8rem;align-items:center;color:#193e65;font-size:1.65rem;font-weight:800;letter-spacing:-.05em}.brand>span:first-child{font-size:2.7rem;font-weight:400;color:#af824a}.brand small{display:block;font-size:.72rem;letter-spacing:0;font-weight:400;color:#64748b;margin-top:.3rem}.account{display:flex;gap:1rem;flex-wrap:wrap;font-size:.8rem;color:#526276}.account a:hover{color:#164e85;text-decoration:underline}.primary{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));max-width:1200px;margin:auto;padding:0 1.5rem}.nav-group{position:relative}.nav-group summary{list-style:none;cursor:pointer;padding:1rem .3rem;font-size:.93rem;text-align:center;font-weight:600;white-space:nowrap;border-bottom:3px solid transparent}.nav-group summary::-webkit-details-marker{display:none}.nav-group summary span{margin-left:.4rem;color:#728397}.nav-group[open] summary,.nav-group summary.active{color:#164e85;border-color:#b28a54;background:#f6f8fb}.submenu{position:absolute;top:100%;left:0;min-width:215px;max-height:65vh;overflow:auto;background:white;border:1px solid #e1e7ee;border-radius:0 0 10px 10px;box-shadow:0 12px 30px #173d7120;padding:.6rem}.nav-group:last-child .submenu{left:auto;right:0}.submenu a{display:block;padding:.7rem .85rem;font-size:.87rem;border-radius:5px}.submenu a:hover,.submenu a[aria-current]{background:#f0f5fb;color:#164e85}.submenu .group-overview{color:#164e85;font-weight:700;border-bottom:1px solid #e5eaf0;border-radius:0;margin-bottom:.4rem}
- @media(max-width:850px){.header-top{padding:1rem;align-items:flex-start;flex-wrap:wrap}.brand{font-size:1.4rem}.primary{grid-template-columns:repeat(4,minmax(0,1fr));padding:0 .5rem}.nav-group summary{font-size:.83rem;padding:.85rem .1rem}.nav-group:nth-child(4n) .submenu{left:auto;right:0}.submenu{min-width:190px}.account{font-size:.75rem;gap:.8rem}.brand small{font-size:.68rem}}
+ .menu-toggle{display:none}
+ @media(max-width:1000px){.header-top{padding:.85rem 1rem .35rem;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.4rem .75rem;align-items:center}.brand{min-width:0;grid-column:1;grid-row:1}.brand img{width:clamp(140px,44vw,180px);max-width:100%}.brand>small{font-size:.61rem;margin-top:0}.account{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));font-size:.75rem;gap:.1rem;width:100%}.account a{display:flex;align-items:center;justify-content:center;min-height:44px;text-align:center;line-height:1.4}
+  .menu-toggle{grid-column:2;grid-row:1;display:block;min-width:80px;min-height:44px;padding:.6rem .8rem;border:1px solid #cbd8e3;border-radius:8px;background:#f6f8fb;color:#164e85;font-weight:700;font-size:.9rem;cursor:pointer;margin:0}
+  .primary{display:none;grid-template-columns:1fr;padding:0 1rem .5rem;max-height:70vh;overflow:auto}.primary.open{display:grid}
+  .nav-group summary{font-size:1rem;padding:.9rem .4rem;text-align:left;border-bottom:1px solid #e6ecf3}
+  .nav-group summary span{float:right}
+  .submenu{position:static;box-shadow:none;border:0;max-height:none;min-width:0;padding:0 0 .6rem .6rem;background:#fff}
+  .submenu a{padding:.75rem .6rem;font-size:.95rem}
+ }
+ @media(max-width:380px){.account a{font-size:.7rem}.brand>small{font-size:.58rem}}
 </style>

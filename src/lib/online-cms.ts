@@ -46,6 +46,11 @@ export async function onlineCmsRequest(path:string,input:any={}){
  }
  throw new Error('지원하지 않는 관리 작업입니다.');
 }
+export async function deleteAsset(objectPath:string){
+ if(!client)throw new Error('관리자 연결을 확인해 주세요.');
+ checked(await client.storage.from(mediaBucket).remove([objectPath]));
+ checked(await client.from('church_cms_assets').delete().eq('object_path',objectPath));
+}
 export async function resolveMediaUrl(value:string){
  if(value.startsWith('storage:')){const connection=await membershipClient();if(!connection)return '';const result=await connection.storage.from(mediaBucket).createSignedUrl(value.slice(8),3600);return result.data?.signedUrl??'';}
  if(value.startsWith('/')&&!value.startsWith('//'))return value;

@@ -10,6 +10,13 @@
 - Preserve existing administrator page code when importing the Onmam archive into public-facing boards.
 - Original Onmam materials are staged locally in `migration/onmam/`; keep archive files out of the public Git repository and deploy them only as part of an explicit publication task.
 
+## Source and preview synchronization
+
+- Save reviewed source changes to `haein-church/haein-church-website` before updating Cloudflare. Commit and push the working branch first, then deploy that exact commit to the existing authorized preview branch. Record the commit and deployment URL.
+- The shared preview is `https://codex-preview-20261102.haein-church-9j8.pages.dev/`. Keep automatic production and preview deployments disabled. A preview update does not authorize publishing to the production domain.
+- Keep `CLAUDE.md` current so another coding assistant can locate the working branch, source files, local archive requirements and preview workflow.
+- Never commit original Onmam archives, environment files, service keys or generated private reports. Preserve hidden-record protection in both repository source and Pages deployment packages.
+
 ## Development commands
 
 When starting the dev server, use background mode:

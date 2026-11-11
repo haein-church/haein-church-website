@@ -44,3 +44,4 @@ public/cms/
 supabase/.temp/
 
 migration/onmam-*/
+migration/generated/

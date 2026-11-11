@@ -4,13 +4,19 @@ import { readdir, stat, readFile, writeFile, mkdir, link, copyFile } from 'node:
 import { resolve, relative, dirname, basename, extname } from 'node:path';
 const root=process.cwd(), source=resolve(root,'dist');
 const target=resolve(root,'.migration-tools',`share-preview-${Date.now()}`);
-const snapshot=resolve(root,'migration/onmam/snapshots/2026-11-02');
+const snapshots=[resolve(root,'migration/onmam'),resolve(root,'migration/onmam/snapshots/2026-11-11-verification')];
+const assetMeta=new Map();
+for(const snapshot of snapshots){
+ let entries;try{entries=await readdir(resolve(snapshot,'asset-records'));}catch{continue;}
+ for(let start=0;start<entries.length;start+=32){
+  const batch=await Promise.all(entries.slice(start,start+32).filter(entry=>entry.endsWith('.json')).map(async entry=>JSON.parse(await readFile(resolve(snapshot,'asset-records',entry),'utf8'))));
+  for(const meta of batch)if(meta.local_path)assetMeta.set(basename(meta.local_path),meta);
+ }
+}
 const replacements=new Map();let files=0,bytes=0;
 const remoteAssets=process.argv.includes('--remote-assets');
 if(remoteAssets){
- for(const entry of await readdir(resolve(snapshot,'asset-records'))){
-  if(!entry.endsWith('.json'))continue;
-  const meta=JSON.parse(await readFile(resolve(snapshot,'asset-records',entry),'utf8'));
+ for(const meta of assetMeta.values()){
   if(meta.status==='downloaded'&&/^https?:\/\//.test(meta.url)&&meta.local_path)
    replacements.set('/onmam-assets/'+basename(meta.local_path),meta.url.replaceAll('&','&amp;').replaceAll('"','&quot;'));
  }
@@ -19,7 +25,8 @@ for(const entry of await readdir(resolve(source,'onmam-assets'),{withFileTypes:t
  if(!entry.isFile())continue;
  const info=await stat(resolve(source,'onmam-assets',entry.name));
  if(info.size<=25*1024*1024)continue;
- const meta=JSON.parse(await readFile(resolve(snapshot,'asset-records',basename(entry.name,extname(entry.name))+'.json'),'utf8'));
+ const meta=assetMeta.get(entry.name);
+ if(!meta)throw new Error('Oversized asset metadata missing: '+entry.name);
  if(!/^https?:\/\//.test(meta.url))throw new Error('Oversized file has no usable original URL: '+entry.name);
  replacements.set('/onmam-assets/'+entry.name,meta.url.replaceAll('&','&amp;').replaceAll('"','&quot;'));
 }
