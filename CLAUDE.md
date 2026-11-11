@@ -2,6 +2,8 @@
 
 먼저 `AGENTS.md`를 읽고 따릅니다.
 
+두 AI의 서비스별 인증 상태와 연결 방법은 `docs/AI_COLLABORATION.md`를 확인합니다. 프로젝트 한정 Supabase MCP 설정은 `.mcp.json`에 있으며 별도 OAuth 인증이 필요합니다.
+
 상태·운영 문서는 `docs/PROJECT_STATUS.md`, `docs/OPEN_ISSUES.md`, `docs/OPERATIONS_MANUAL.md`, `docs/BACKUP_VERIFICATION.md`에 있습니다. Astro 변경 전에는 `AGENTS.md`의 공식 가이드를 확인합니다.
 
 - 저장소: `haein-church/haein-church-website`
