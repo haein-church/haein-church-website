@@ -45,3 +45,9 @@ Consult these guides before working on related tasks:
 - Before changing anything, run `git log --oneline -10` on `codex/full-onmam-migration` and read the latest commit messages. They describe the current state.
 - Continue from the latest commit. Do not redo work that is already committed.
 - Every commit message must say what changed and why, and name the assistant that made it (for example `[Claude]` or `[ChatGPT]`).
+
+## Storage policy (free plans only)
+
+- Photos and small attachments are served from the Cloudflare Pages build.
+- Large videos go to Supabase Storage (`church-media` for members-only, `church-public` for public). Keep Supabase within the free 1 GB storage and 5 GB monthly egress limits.
+- Do not enable paid services or R2 without explicit user approval.
