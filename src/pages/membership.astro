@@ -11,6 +11,11 @@ import Layout from '../layouts/Layout.astro';
       <button type="button" id="refreshStatus">승인 상태 새로고침</button>
       <a href="/boards/">교회 게시판 보기</a>
     </section>
+    <section id="adminRequestSection" hidden>
+      <h2>보조 관리자 신청</h2>
+      <p id="adminRequestText">보조 관리자가 되려면 신청하세요. 마스터 관리자가 확인한 뒤 승인합니다.</p>
+      <button type="button" id="adminRequestButton">보조 관리자 신청</button>
+    </section>
     <p><a id="adminLink" href="/admin/" hidden>관리자 페이지</a></p>
     <button type="button" id="memberLogout" hidden>로그아웃</button>
     <p><a href="/login/">로그인</a> · <a href="/">홈으로</a></p>
@@ -32,7 +37,28 @@ import Layout from '../layouts/Layout.astro';
       if (error) { status.textContent = '로그아웃하지 못했습니다. 다시 시도해 주세요.'; return; }
       location.replace('/login/');
     };
-    document.getElementById('adminLink')!.hidden = !await isAdministrator(client);
+    const isAdmin = await isAdministrator(client);
+    document.getElementById('adminLink')!.hidden = !isAdmin;
+    if (!isAdmin) {
+      const requestSection = document.getElementById('adminRequestSection')!;
+      const requestText = document.getElementById('adminRequestText')!;
+      const requestButton = document.getElementById('adminRequestButton') as HTMLButtonElement;
+      requestSection.hidden = false;
+      const showStatus = (value: string | null) => {
+        if (value === 'pending') { requestText.textContent = '보조 관리자 신청이 접수되어 승인을 기다리고 있습니다.'; requestButton.hidden = true; }
+        else if (value === 'approved') { requestText.textContent = '보조 관리자 신청이 승인되었습니다. 관리자 페이지를 새로고침해 주세요.'; requestButton.hidden = true; }
+        else { requestText.textContent = value === 'rejected' ? '이전 신청이 승인되지 않았습니다. 다시 신청할 수 있습니다.' : '보조 관리자가 되려면 신청하세요. 마스터 관리자가 확인한 뒤 승인합니다.'; requestButton.hidden = false; }
+      };
+      const current = await client.rpc('my_admin_request_status');
+      showStatus(current.data ?? null);
+      requestButton.onclick = async () => {
+        requestButton.disabled = true;
+        const result = await client.rpc('request_church_admin');
+        requestButton.disabled = false;
+        if (result.error) { requestText.textContent = result.error.message; return; }
+        showStatus(result.data ?? 'pending');
+      };
+    }
     const { data, error } = await client.from('join_requests')
       .select('name,status,created_at').eq('user_id', user.id).maybeSingle();
     if (error) throw new Error('가입 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');

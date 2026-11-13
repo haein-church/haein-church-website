@@ -39,7 +39,8 @@ export async function onlineCmsRequest(path:string,input:any={}){
   const mime=input.mime||'application/octet-stream';if(/^(text\/html|image\/svg\+xml|application\/javascript)/.test(mime))throw new Error('지원하지 않는 파일 형식입니다.');
   const {data:{user}}=await client.auth.getUser();if(!user)throw new Error('다시 로그인해 주세요.');
   const bytes=Uint8Array.from(atob(input.base64),character=>character.charCodeAt(0));if(!bytes.length||bytes.length>50*1024*1024)throw new Error('파일은 50MB 이내로 올려 주세요.');
-  const objectPath=user.id+'/'+crypto.randomUUID()+'.'+extension;
+  const members=input.visibility==='members'&&input.ownerKey!=='slides';
+  const objectPath=(members?'members':user.id)+'/'+crypto.randomUUID()+'.'+extension;
   checked(await client.storage.from(mediaBucket).upload(objectPath,bytes,{contentType:mime,upsert:false}));
   checked(await client.from('church_cms_assets').insert({object_path:objectPath,owner_key:input.ownerKey,name:input.name,mime,bytes:bytes.length,created_by:user.id}));
   return {file:{name:input.name,url:'storage:'+objectPath,mime,bytes:bytes.length}};
