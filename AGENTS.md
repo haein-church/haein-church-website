@@ -39,3 +39,9 @@ Consult these guides before working on related tasks:
 - [Adding or managing content](https://docs.astro.build/en/guides/content-collections/)
 - [Adding styles or using Tailwind](https://docs.astro.build/en/guides/styling/)
 - [Supporting multiple languages](https://docs.astro.build/en/guides/internationalization/)
+
+## Session start procedure
+
+- Before changing anything, run `git log --oneline -10` on `codex/full-onmam-migration` and read the latest commit messages. They describe the current state.
+- Continue from the latest commit. Do not redo work that is already committed.
+- Every commit message must say what changed and why, and name the assistant that made it (for example `[Claude]` or `[ChatGPT]`).
