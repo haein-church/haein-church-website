@@ -4,6 +4,7 @@ import {readFile,writeFile,mkdir,copyFile}from'node:fs/promises';
 import {fileURLToPath}from'node:url';
 import path from'node:path';
 import './require_publish_approval.mjs';
+import './check_hero_reference.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url));
 const run=(command,args,cwd=root)=>{const r=spawnSync(command,args,{cwd,encoding:'utf8',maxBuffer:20*1024*1024,env:{...process.env,ASTRO_TELEMETRY_DISABLED:'1',CLOUDFLARE_ACCOUNT_ID:'0fc751b6493b91564e14888a0e02a403'}});if(r.status!==0)throw new Error((r.stderr||r.stdout||String(r.error)).slice(-6000));return r.stdout;};
 if(run('git',['remote','get-url','origin']).trim()!=='https://github.com/haein-church/haein-church-website.git')throw new Error('Wrong GitHub repository');

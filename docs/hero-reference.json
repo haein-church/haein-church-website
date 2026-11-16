@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "approvedOn": "2026-11-17",
+  "sourceCommit": "a5b56607c64049031c6d7e5bd9fd350c1764d20e",
+  "changePolicy": "Only an explicit owner request or the authorized administrator page may change the hero photos, scripture, order or design. AI must not replace, regenerate, hide or remove them during unrelated work.",
+  "lockedFiles": [
+    {
+      "path": "src/components/HeroSlider.astro",
+      "sha256": "1c0b0317c68c883638499174cccffe8035d4bed857406475f2c0d5c5fff71601",
+      "bytes": 7005,
+      "textNormalization": "LF"
+    },
+    {
+      "path": "src/data/hero-slides.json",
+      "sha256": "707e973d5fa8513d184717534726b6e142ce49aa47da1bf15b69d42578dfa4d9",
+      "bytes": 969,
+      "textNormalization": "LF"
+    },
+    {
+      "path": "public/images/hero/john-3-16-photo.webp",
+      "sha256": "b6dc4459a4baa077313d83478842bbbc766bf2097aa8e0b37ce14b8d167c006b",
+      "bytes": 468784
+    },
+    {
+      "path": "public/images/hero/ephesians-haein-fellowship.webp",
+      "sha256": "b784b43c42c3df37f09d23ce76d52dccddb1d38728c4b61550141dcae1202527",
+      "bytes": 85248
+    }
+  ],
+  "slides": [
+    {
+      "id": "john-3-16",
+      "image": "/images/hero/john-3-16-photo.webp",
+      "alt": "밝은 낮 하늘과 나무 사이의 커다란 나무 십자가",
+      "width": 1350,
+      "height": 1800,
+      "lines": [
+        "하나님이 세상을 이처럼 사랑하사",
+        "독생자를 주셨으니",
+        "이는 그를 믿는 자마다 멸망하지 않고",
+        "영생을 얻게 하려 하심이라"
+      ],
+      "reference": "요한복음 3장 16절"
+    },
+    {
+      "id": "ephesians-4-2-3",
+      "image": "/images/hero/ephesians-haein-fellowship.webp",
+      "alt": "해인교회 부활절 예배에서 새가족을 함께 환영하는 성도들",
+      "width": 640,
+      "height": 480,
+      "lines": [
+        "모든 겸손과 온유로 하고 오래 참음으로",
+        "사랑 가운데서 서로 용납하고",
+        "평안의 매는 줄로 성령이 하나 되게 하신 것을",
+        "힘써 지키라."
+      ],
+      "reference": "에베소서 4장 2–3절"
+    }
+  ]
+}

@@ -15,6 +15,25 @@
 
 ## 현재 소스
 
+### 대표 사진 기준본 — 사용자 승인 없이 변경 금지 (2026-11-17)
+
+사용자가 직접 특정 변경을 요청하거나 권한 있는 관리자가 관리자 페이지에서 변경하기 전에는 AI가 대표 슬라이더·사진·성경 문구·순서·표시 여부·디자인을 바꾸면 안 됩니다. 다른 화면, 임의의 사진, 새 생성 이미지로 대체하지 않습니다. 관리자 개선 작업도 대표 사진 변경의 허가가 아닙니다.
+
+같은 작업 브랜치를 fetch한 뒤 아래 **실제 파일**을 열어 사용합니다. GitHub와 Cloudflare에 있는 파일도 이 파일과 같아야 합니다. 기준 커밋은 `a5b5660`, 파일별 SHA-256·크기·슬라이드 내용은 `docs/hero-reference.json`에 있습니다. `node scripts/check_hero_reference.mjs`로 일치 여부를 확인합니다. 이 검사에 맞추려고 기준값을 임의로 갱신하지 않습니다.
+
+1. 요한복음 3:16: `public/images/hero/john-3-16-photo.webp` (1350×1800)
+2. 에베소서 4:2–3: `public/images/hero/ephesians-haein-fellowship.webp` (640×480, 해인교회 실제 새가족 환영 사진)
+
+브라우저에서 실제 파일을 받아야 한다면 [십자가 원본 WebP](https://codex-preview-20261102.haein-church-9j8.pages.dev/images/hero/john-3-16-photo.webp)와 [새가족 환영 원본 WebP](https://codex-preview-20261102.haein-church-9j8.pages.dev/images/hero/ephesians-haein-fellowship.webp)를 사용합니다. 캡처 화면을 재사용하거나 다른 사진을 찾지 않습니다. 받은 파일도 위 기준값과 비교합니다.
+
+![기준 사진 1: 십자가](public/images/hero/john-3-16-photo.webp)
+
+![기준 사진 2: 해인교회 새가족 환영](public/images/hero/ephesians-haein-fellowship.webp)
+
+렌더링은 `src/components/HeroSlider.astro`, 문구와 순서는 `src/data/hero-slides.json`을 그대로 사용합니다. 이 정적 슬라이더를 메인 페이지에서 빼지 않습니다. Claude의 관리자 기능 업데이트(`1abec69`, `68d369e`)는 보존하며, 사진 복구를 이유로 브랜치 전체를 과거 커밋으로 되돌리지 않습니다. 이 규칙은 작업 지침과 빌드 검사이며 AI의 모든 행동을 기술적으로 불가능하게 만드는 권한 체계는 아닙니다.
+
+2026-11-17에 공유 미리보기의 두 사진이 로컬 원본과 SHA-256까지 같음을 확인했습니다. Supabase의 사진 기준 정보 보관 SQL은 로컬 `migration/references/2026-11-17/save-hero-reference.sql`에 준비되어 있습니다. `payload.hero_reference`만 추가하며 기존 메뉴·슬라이드·관리자 설정은 바꾸지 않습니다. 현재 Supabase 커넥터 권한 오류로 원격 저장은 확인 전까지 완료로 간주하지 않습니다. 사진 파일 자체는 무료 저장 정책에 따라 GitHub·Cloudflare Pages에 보관합니다.
+
 - `src/components/HeroSlider.astro`, `src/data/hero-slides.json`: 요한복음 3:16·에베소서 4:2–3 슬라이드. 에베소서 사진은 해인교회가 온맘에 올린 실제 새가족 환영 장면입니다.
 - `src/components/SiteNavigation.astro`, `src/layouts/Layout.astro`: 모바일 메뉴·가독성·터치 영역.
 - `src/components/ArchiveContent.astro`, `src/data/video-source-links.json`: 미확보 영상 88개에 대응하는 게시글 49개의 Band 원본 연결. 별도 보존된 영상 5개는 직접 열기 링크도 제공합니다. Band 내 실제 재생은 로그인·가입 상태에 따라 확인이 필요합니다.

@@ -17,6 +17,13 @@
 - Keep `CLAUDE.md` current so another coding assistant can locate the working branch, source files, local archive requirements and preview workflow.
 - Never commit original Onmam archives, environment files, service keys or generated private reports. Preserve hidden-record protection in both repository source and Pages deployment packages.
 
+## Owner-approved hero protection
+
+- The owner explicitly prohibits AI from changing, replacing, regenerating, hiding or deleting the representative slider, photos, scripture, order or design unless the owner directly requests that specific change. Authorized administrator-page changes remain allowed. Unrelated redesigns, cleanup, migrations and admin updates do not authorize hero changes.
+- The canonical source is `src/components/HeroSlider.astro`, `src/data/hero-slides.json` and the two existing files in `public/images/hero/`. Read `docs/hero-reference.json` and the photo previews in `CLAUDE.md` before any homepage work. Never substitute another assistant's screenshot or a newly found/generated picture for these assets.
+- `scripts/check_hero_reference.mjs` checks SHA-256 hashes and homepage inclusion before a build or shared-preview deployment. Do not bypass the check or refresh its baseline to accommodate an unsolicited AI change. Change the baseline only together with a specific owner-authorized source change. Administrator changes in Supabase do not require modifying the static baseline.
+- Preserve the current administrator functionality and permissions independently of hero restoration. On 2026-11-17 the source baseline includes Claude admin commits `1abec69` and `68d369e`; do not roll the branch back to restore photos.
+
 ## Development commands
 
 When starting the dev server, use background mode:
