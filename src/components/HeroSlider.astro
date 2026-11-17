@@ -78,17 +78,18 @@ import slides from '../data/hero-slides.json';
 
 <style>
   .hero-slider{position:relative;overflow:hidden;background:#fbfaf5;color:#183f47;isolation:isolate}
-  .slider-track{position:relative;min-height:clamp(480px,38vw,660px)}
+  .slider-track{position:relative;min-height:clamp(600px,calc(100vh - 210px),920px)}
   .slide{position:absolute;inset:0;display:flex;align-items:center}
   .slide[hidden]{display:none}
   .slide.is-active{display:flex;animation:slideFade .8s ease}
   @keyframes slideFade{from{opacity:0}to{opacity:1}}
-  .slide-art{position:absolute;inset:0 auto 0 0;width:49%;height:100%;object-fit:cover;object-position:center 55%}
-  .slide::after{content:"";position:absolute;inset:0 auto 0 44%;width:6%;background:linear-gradient(90deg,#fbfaf500,#fbfaf5);pointer-events:none}
-  .slide-text{position:relative;z-index:1;width:100%;margin:0 auto;padding:2.2rem 3.5vw 4rem 52%;text-align:center}
+  .slide-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 45%}
+  .slide::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(12,26,30,.62) 0%,rgba(12,26,30,.38) 45%,rgba(12,26,30,.12) 100%);pointer-events:none}
+  .slide-text{position:relative;z-index:1;width:100%;margin:0 auto;padding:2.2rem 3.5vw 4rem 52%;text-align:center;color:#ffffff}
   .scripture{font-family:Georgia,'Batang','바탕',serif;font-size:clamp(1.2rem,1.65vw,1.9rem);font-weight:500;letter-spacing:-.035em;line-height:1.85;margin:auto;word-break:keep-all;text-wrap:pretty}
   .scripture span{display:block}
-  .slide-ref{margin-top:1rem;font-size:1rem;font-weight:600;color:#385b60;letter-spacing:.04em}
+  .scripture{text-shadow:0 2px 14px rgba(0,0,0,.55)}
+  .slide-ref{margin-top:1rem;font-size:1rem;font-weight:600;color:#f7e3b4;letter-spacing:.04em;text-shadow:0 1px 10px rgba(0,0,0,.55)}
   .slider-controls{position:absolute;inset:auto 0 1.3rem;z-index:2;display:flex;align-items:center;justify-content:center;gap:.7rem}
   .slider-btn{width:44px;height:44px;border-radius:50%;border:1px solid #395a5266;background:#ffffffc9;color:#254d4e;font-size:1.3rem;cursor:pointer}
   .slider-play{font-size:.8rem}
@@ -98,12 +99,12 @@ import slides from '../data/hero-slides.json';
   .slider-dots button[aria-current="true"]::after{background:#254d4e}
   .slider-btn:focus-visible,.slider-dots button:focus-visible{outline:3px solid #254d4e;outline-offset:3px}
   @media(max-width:700px){
-    .slider-track{min-height:0}
-    .slide{position:relative;inset:auto;display:block}
-    .slide.is-active{display:block}
-    .slide-art{position:relative;inset:auto;display:block;width:100%;height:clamp(210px,60vw,280px);object-position:center 45%}
-    .slide::after{display:none}
-    .slide-text{min-height:310px;padding:1.2rem 1rem 5rem}
+    .slider-track{min-height:560px}
+    .slide{position:absolute;inset:0;display:flex;align-items:flex-end}
+    .slide.is-active{display:flex}
+    .slide-art{position:absolute;inset:0;width:100%;height:100%;object-position:center 40%}
+    .slide::after{background:linear-gradient(180deg,rgba(12,26,30,.15) 0%,rgba(12,26,30,.45) 45%,rgba(12,26,30,.82) 100%)}
+    .slide-text{min-height:0;padding:1.2rem 1rem 5rem;text-align:center}
     .scripture{max-width:100%;font-size:1.05rem;line-height:1.85}
     .slide-ref{font-size:.85rem;margin-top:1rem}
   }
