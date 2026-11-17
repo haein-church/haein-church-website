@@ -32,7 +32,23 @@
 
 렌더링은 `src/components/HeroSlider.astro`, 문구와 순서는 `src/data/hero-slides.json`을 그대로 사용합니다. 이 정적 슬라이더를 메인 페이지에서 빼지 않습니다. Claude의 관리자 기능 업데이트(`1abec69`, `68d369e`)는 보존하며, 사진 복구를 이유로 브랜치 전체를 과거 커밋으로 되돌리지 않습니다. 이 규칙은 작업 지침과 빌드 검사이며 AI의 모든 행동을 기술적으로 불가능하게 만드는 권한 체계는 아닙니다.
 
-2026-11-17에 공유 미리보기의 두 사진이 로컬 원본과 SHA-256까지 같음을 확인했습니다. Supabase의 사진 기준 정보 보관 SQL은 로컬 `migration/references/2026-11-17/save-hero-reference.sql`에 준비되어 있습니다. `payload.hero_reference`만 추가하며 기존 메뉴·슬라이드·관리자 설정은 바꾸지 않습니다. 현재 Supabase 커넥터 권한 오류로 원격 저장은 확인 전까지 완료로 간주하지 않습니다. 사진 파일 자체는 무료 저장 정책에 따라 GitHub·Cloudflare Pages에 보관합니다.
+### Supabase 저장 검증 완료 — 2026-11-17
+
+사용자가 SQL Editor에서 기준 정보 저장 SQL을 실행한 뒤, ChatGPT가 지정 프로젝트의 공개 조회 API로 실제 저장값을 읽어 검증했습니다. **사진 기준 정보는 원격 Supabase에 저장 완료된 상태입니다.** 이전의 저장 대기 안내를 근거로 재설정하거나 SQL을 반복 실행하지 않습니다.
+
+- 프로젝트: `ambojhrewxsxdavlmkpt` / `haein-church-website` / 서울
+- 저장 위치: `public.church_cms_site`의 `id = 'main'` 행, `payload.hero_reference`
+- 확인한 버전: `revision = 2` (향후 정상적인 관리자 저장으로 증가할 수 있음)
+- 저장 시각: 2026-11-17 09:07:26 KST
+- 기준 사진 2장의 경로·성경 문구·순서·파일 SHA-256·원본 기준 커밋이 `docs/hero-reference.json`과 모두 일치
+- 원본 파일 제공 주소: `https://codex-preview-20261102.haein-church-9j8.pages.dev`
+- 기준 정보 추가 전후의 **기존 메뉴·슬라이드·기타 CMS 설정이 모두 동일함**을 확인
+- 비공개 로컬 검증 기록: `migration/references/2026-11-17/supabase-hero-verified.json`
+- 실행한 SQL 보관: `migration/references/2026-11-17/save-hero-reference.sql` (Git에 올리지 않음)
+
+사진 파일 자체는 무료 저장 정책에 따라 GitHub·Cloudflare Pages에, 기준 경로·문구·해시는 Supabase에 보관합니다. `hero_reference`는 기준 정보이며 관리자용 `payload.slides`와 다른 항목입니다. 이를 이유로 `payload.slides`를 덮어쓰거나 사진을 다시 생성·교체하지 않습니다. 현재 커넥터의 관리 권한 오류와 이미 검증된 원격 저장 상태를 혼동하지 않습니다.
+
+**Claude의 후속 작업:** 위 두 실제 사진과 기존 슬라이더를 사용하고, 관리자 업데이트(`1abec69`, `68d369e`) 및 이후 사용자의 정상적인 관리자 변경을 그대로 유지합니다. 사진 복구를 이유로 관리자 페이지·업로드·역할·승인·권한 설정을 되돌리거나 변경하지 않습니다. 사용자나 권한 있는 관리자가 대표 사진을 명시적으로 변경한 경우에만 새 기준을 반영합니다.
 
 - `src/components/HeroSlider.astro`, `src/data/hero-slides.json`: 요한복음 3:16·에베소서 4:2–3 슬라이드. 에베소서 사진은 해인교회가 온맘에 올린 실제 새가족 환영 장면입니다.
 - `src/components/SiteNavigation.astro`, `src/layouts/Layout.astro`: 모바일 메뉴·가독성·터치 영역.
