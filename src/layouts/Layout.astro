@@ -1,8 +1,8 @@
 ---
 import SiteNavigation from '../components/SiteNavigation.astro';
 import branding from '../data/branding.json';
-interface Props { title?: string }
-const { title = '해인교회' } = Astro.props;
+interface Props { title?: string; overlayHeader?: boolean }
+const { title = '해인교회', overlayHeader = false } = Astro.props;
 ---
 <html lang="ko">
  <head>
@@ -19,7 +19,7 @@ const { title = '해인교회' } = Astro.props;
    @media(max-width:700px){input,select,textarea{font-size:16px}.board-nav a,.church-wrap nav a,.pagination a{display:inline-flex;align-items:center;justify-content:center;min-height:44px}.board-meta{gap:.8rem;flex-wrap:wrap}.footer-inner nav a{display:inline-flex;align-items:center;min-height:44px}.article-header h1,.church-heading h1,.page-heading h1{font-size:clamp(1.5rem,6vw,2rem)}.original-content iframe,.original-content video,.original-content audio{max-width:100%}}
   </style>
  </head>
- <body>
+ <body class:list={{'overlay-header': overlayHeader}}>
   <a class="skip" href="#main-content">본문 바로가기</a>
   <SiteNavigation/>
   <div id="main-content" tabindex="-1"><slot/></div>
@@ -33,5 +33,6 @@ const { title = '해인교회' } = Astro.props;
 </html>
 <style>
  .footer-name img{display:block;background:#fff;border:5px solid #fff;border-radius:4px;box-sizing:content-box;width:220px;height:auto}
- .skip{position:fixed;left:1rem;top:-100px;z-index:999;background:#193e65;color:#fff;padding:1rem}.skip:focus{top:1rem}footer{background:#182f49;color:#c2cedc;font-size:.85rem;padding:3rem 1.5rem 1.5rem;line-height:2}.footer-inner{max-width:1152px;margin:auto;display:flex;justify-content:space-between;gap:2rem}.footer-name{font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:.6rem}.footer-inner nav{display:flex;flex-wrap:wrap;gap:1.5rem;align-content:start}footer a:hover{text-decoration:underline}.copyright{max-width:1152px;margin:2rem auto 0;border-top:1px solid #ffffff20;padding-top:1rem;font-size:.75rem}@media(max-width:650px){.footer-inner{flex-direction:column}.footer-inner nav{gap:1rem}}
+ .overlay-header .site-header{position:absolute;top:0;left:0;right:0;background:linear-gradient(180deg,rgba(12,26,30,.55) 0%,rgba(12,26,30,0) 100%);border-bottom:0}.overlay-header .brand,.overlay-header .brand small,.overlay-header .account a,.overlay-header .nav-group summary{color:#fff!important;text-shadow:0 1px 10px rgba(0,0,0,.6)}.overlay-header .brand img{background:#fff;border-radius:6px;padding:.4rem .6rem;width:auto;height:auto;max-width:220px}.overlay-header .submenu,.overlay-header .submenu a{color:#26364a!important;text-shadow:none}.overlay-header .nav-group summary span{color:#fff}.overlay-header .slider-track{min-height:100vh}.overlay-header .hero-slider{margin-top:0}
+.skip{position:fixed;left:1rem;top:-100px;z-index:999;background:#193e65;color:#fff;padding:1rem}.skip:focus{top:1rem}footer{background:#182f49;color:#c2cedc;font-size:.85rem;padding:3rem 1.5rem 1.5rem;line-height:2}.footer-inner{max-width:1152px;margin:auto;display:flex;justify-content:space-between;gap:2rem}.footer-name{font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:.6rem}.footer-inner nav{display:flex;flex-wrap:wrap;gap:1.5rem;align-content:start}footer a:hover{text-decoration:underline}.copyright{max-width:1152px;margin:2rem auto 0;border-top:1px solid #ffffff20;padding-top:1rem;font-size:.75rem}@media(max-width:650px){.footer-inner{flex-direction:column}.footer-inner nav{gap:1rem}}
 </style>

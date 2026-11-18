@@ -7,7 +7,7 @@ import { groups, postsFor, postUrl, pages } from '../lib/onmam';
 const moments = postsFor('25').filter(post => post.images.length).slice(0,3);
 const churchImage = pages.find(page => page.id === '2')?.images[0];
 ---
-<Layout title="해인교회 · 하나님을 사랑하고 이웃을 섬기는 교회">
+<Layout title="해인교회 · 하나님을 사랑하고 이웃을 섬기는 교회" overlayHeader={true}>
  <main>
   <HeroSlides/>
   <HeroSlider/>
