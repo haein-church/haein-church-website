@@ -6,8 +6,8 @@
   "lockedFiles": [
     {
       "path": "src/components/HeroSlider.astro",
-      "sha256": "1c0b0317c68c883638499174cccffe8035d4bed857406475f2c0d5c5fff71601",
-      "bytes": 7005,
+      "sha256": "b7d2248b4ba09f4b576b43755bc2162b7549ea377fa240f2057d0ef874b53335",
+      "bytes": 7238,
       "textNormalization": "LF"
     },
     {
@@ -56,5 +56,7 @@
       ],
       "reference": "에베소서 4장 2–3절"
     }
-  ]
+  ],
+  "amendedOn": "2026-11-18",
+  "amendReason": "Owner-approved (2026-11-18) full-width photo layout for HeroSlider.astro: photos fill the slide, scripture text on the right, slider below header. Photos, scripture text and slide order unchanged."
 }
