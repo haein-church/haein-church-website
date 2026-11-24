@@ -3,6 +3,7 @@
 import { readdir, stat, readFile, writeFile, mkdir, link, copyFile } from 'node:fs/promises';
 import { resolve, relative, dirname, basename, extname } from 'node:path';
 const root=process.cwd(), source=resolve(root,'dist');
+const largeVideos=JSON.parse(await readFile(resolve(root,'src/data/large-video-links.json'),'utf8'));
 const target=resolve(root,'.migration-tools',`share-preview-${Date.now()}`);
 const snapshots=[resolve(root,'migration/onmam'),resolve(root,'migration/onmam/snapshots/2026-11-11-verification')];
 const assetMeta=new Map();
@@ -25,10 +26,13 @@ for(const entry of await readdir(resolve(source,'onmam-assets'),{withFileTypes:t
  if(!entry.isFile())continue;
  const info=await stat(resolve(source,'onmam-assets',entry.name));
  if(info.size<=25*1024*1024)continue;
- const meta=assetMeta.get(entry.name);
- if(!meta)throw new Error('Oversized asset metadata missing: '+entry.name);
- if(!/^https?:\/\//.test(meta.url))throw new Error('Oversized file has no usable original URL: '+entry.name);
- replacements.set('/onmam-assets/'+entry.name,meta.url.replaceAll('&','&amp;').replaceAll('"','&quot;'));
+ // Files over Pages' 25 MB limit are never uploaded. Public videos point to Supabase Storage;
+ // member-only videos point to '#' because they are opened only through the signed member flow.
+ const large=largeVideos[entry.name];
+ if(!large)throw new Error('Oversized file has no Supabase mapping in src/data/large-video-links.json: '+entry.name);
+ const value=large.access==='public'?large.url:'#';
+ if(large.access==='public'&&!/^https:\/\/ambojhrewxsxdavlmkpt\.supabase\.co\//.test(value))throw new Error('Unexpected video host: '+entry.name);
+ replacements.set('/onmam-assets/'+entry.name,value.replaceAll('&','&amp;').replaceAll('"','&quot;'));
 }
 async function walk(folder){for(const entry of await readdir(folder,{withFileTypes:true})){
  const path=resolve(folder,entry.name), rel=relative(source,path), destination=resolve(target,rel);
